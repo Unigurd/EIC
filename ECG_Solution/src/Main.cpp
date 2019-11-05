@@ -9,13 +9,69 @@
 #include <GL\glew.h>
 #include <GLFW/glfw3.h>
 #include "Utils.h"
+#include "glm\matrix.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
+float autoRot() {
+	return ((sin(glfwGetTime()) / 2.0f) + 0.5f);
+}
 
 /* --------------------------------------------- */
 // Prototypes
 /* --------------------------------------------- */
+// CHANGE VERSION
+const char* vertexShaderSource =
+"#version 330 core\n"
+"layout (location = 0) in vec3 aPos;\n"
+"uniform mat4 model;\n"
+"uniform mat4 viewProj;\n"
 
+"void main()\n"
+"{\n"
+"    gl_Position = viewProj * model * vec4(aPos,1);\n"
+"}\n";
 
+const char* fragmentShaderSource =
+"#version 330 core\n"
+"uniform vec3 color;\n"
+"out vec4 FragColor;\n"
+"\n"
+"void main()\n"
+"{\n"
+"    FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
+"}\n";
+
+unsigned int buildShader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col) {
+    unsigned int vertexShader;
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+    unsigned int fragmentShader;
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+    
+    unsigned int shaderProgram;
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    glm::mat4 translate = glm::translate(glm::mat4(1.0f), pos);
+    glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), rot);
+    glm::mat4 scale = glm::scale(glm::mat4(1.0f), sca);
+	glm::mat4 model = translate * rotate * scale;
+
+    glUseProgram(shaderProgram);
+	int modelLocation = glGetUniformLocation(shaderProgram, "model");
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+	int colorLocation = glGetUniformLocation(shaderProgram, "color");
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(col));
+
+	return shaderProgram;
+}
 
 /* --------------------------------------------- */
 // Global variables
@@ -158,10 +214,13 @@ int main(int argc, char** argv)
 
 	// load values from ini file
 	// first param: section [window], second param: property name, third param: default value
-	int width = reader.GetInteger("window", "width", 800);
-	int height = reader.GetInteger("window", "height", 800);
-	std::string tmp_window_title = reader.Get("window", "title", "ECG");
+	int width = reader.GetInteger("window", "width", 80);
+	int height = reader.GetInteger("window", "height", 80);
+	std::string tmp_window_title = reader.Get("window", "title", "Title not loaded");
 	const char * window_title = tmp_window_title.c_str();
+	double fovy = reader.GetReal("camera", "fov", 360.0);
+	double zNear = reader.GetReal("camera", "near", 0.5);
+	double zFar = reader.GetReal("camera", "far", 50.0);
 
 	/* --------------------------------------------- */
 	// Init framework
@@ -218,12 +277,31 @@ int main(int argc, char** argv)
 	}
 
 
-	
-
 	/* --------------------------------------------- */
 	// Initialize scene and render loop
 	/* --------------------------------------------- */
 
+    /* Enable Z depth testing so objects closest to the viewpoint are in front of objects further away */
+	// Taken from  khronos.org
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS); 
+    
+	
+	unsigned int redShader = buildShader(glm::vec3(1.5f, 1.0f, 0.0f), 
+		                                 glm::vec3(0.0f, 0.0f, 0.0f), 
+	                                     glm::vec3(1.0f, 2.0f, 1.0f), 
+	                                     glm::vec3(1.0f, 0.0f, 0.0f));
+
+	unsigned int blueShader = buildShader(glm::vec3(-1.5f, -1.0f, 0.0f), 
+		                                 glm::vec3(0.0f, 0.5f, 0.0f), 
+	                                     glm::vec3(1.0f, 1.0f, 1.0f), 
+	                                     glm::vec3(0.0f, 0.0f, 1.0f));
+
+
+	double aspect = (double)width / (double)height;
+	glm::mat4 projection = glm::perspective(45.0, aspect, zNear, zFar);
+	int redProjLocation = glGetUniformLocation(redShader, "viewProj");
+	int blueProjLocation = glGetUniformLocation(blueShader, "viewProj");
 
 	glClearColor(1, 1, 1, 1);
 	
@@ -231,6 +309,15 @@ int main(int argc, char** argv)
 	{	
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glfwPollEvents();
+	    glm::mat4 distance = glm::translate(glm::mat4(1.0f),glm::vec3(0.0f, 0.0f, 6.0f));
+	    glm::mat4 rotateCam = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f*autoRot()), glm::vec3(0.0f, 1.0f, 0.0f));
+	    glm::mat4 view = glm::inverse(rotateCam * distance);
+	    glm::mat4 viewProj = projection * view;
+		glUseProgram(redShader);
+	    glUniformMatrix4fv(redProjLocation, 1, GL_FALSE, glm::value_ptr(viewProj));
+		drawTeapot();
+		glUseProgram(blueShader);
+	    glUniformMatrix4fv(blueProjLocation, 1, GL_FALSE, glm::value_ptr(viewProj));
 		drawTeapot();
 		glfwSwapBuffers(window);
 	}
@@ -255,7 +342,3 @@ int main(int argc, char** argv)
 
 	return EXIT_SUCCESS;
 }
-
-
-
-
