@@ -71,7 +71,7 @@ void drawTeapot();
 
 /*!
  * Destroys the framework
- * Do not overwrite this funtion!
+ * Do not overwrite this function!
  */
 void destroyFramework();
 

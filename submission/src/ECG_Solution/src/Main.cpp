@@ -9,18 +9,200 @@
 #include <GL\glew.h>
 #include <GLFW/glfw3.h>
 #include "Utils.h"
+#include "glm\matrix.hpp"
+#include <glm/gtc/type_ptr.hpp>
+#include "glm/ext.hpp"
+#include <fstream>
+#include <iostream>
+#include <vector>
 
+
+//The GLSL source for the two kinds of shaders
+// Sorry, I didn't have time to put these in files.
+// I did this kinda last minute.. ;)
+const char* vertexShaderSource =
+"#version 430 core\n"
+"layout (location = 0) in vec3 aPos;\n"
+"uniform mat4 model;\n"
+"uniform mat4 viewProj;\n"
+
+"void main()\n"
+"{\n"
+"    gl_Position = viewProj * model * vec4(aPos,1);\n"
+"}\n";
+
+const char* fragmentShaderSource =
+"#version 430 core\n"
+"uniform vec3 color;\n"
+"out vec4 FragColor;\n"
+"\n"
+"void main()\n"
+"{\n"
+"    FragColor = vec4(color, 1.0f);\n"
+"}\n";
 
 /* --------------------------------------------- */
-// Prototypes
+// Classes
 /* --------------------------------------------- */
 
+// The Camera class
+// Will be moved into it's own file
+class Camera {
+private:
+    glm::mat4 projection; // This is constant
+    glm::mat4 translation;
+    float rotationX, rotationY; // 1.0 is one full rotation
+    glm::mat4 viewProj;
 
+public:
+    Camera(float fov, float height, float width, float zNear, float zFar);
+    Camera(float fov, float height, float width, float zNear, float zFar, glm::vec3 trans, glm::vec3 rot);
+    glm::mat4 ViewProjMatrix();
+    void Set(glm::vec3 trans, glm::vec3 rot);
+    void translate(glm::vec3 trans);
+    void rotate(glm::vec3 rot);
+};
 
-/* --------------------------------------------- */
-// Global variables
-/* --------------------------------------------- */
+Camera::Camera(float fov, float height, float width, float zNear, float zFar) {
+    float aspect = width / height;
+    projection = glm::perspective(fov, aspect, zNear, zFar); // Not changed again since it is constant.
+    glm::vec3 trans = glm::vec3(0.0f, 0.0f, 6.0f);
+    glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
+    Set(trans, rot);
+}
 
+Camera::Camera(float fov, float height, float width, float zNear, float zFar, glm::vec3 trans, glm::vec3 rot) {
+    float aspect = width / height;
+    projection = glm::perspective(fov, aspect, zNear, zFar); // Not changed again since it is constant.
+    Set(trans, rot);
+}
+
+// Both Set, translate and rotate methods are a mess
+// because I hodge-podged the arcball camera together last minute.
+// Will be cleaned up next time, I promise (y)
+
+// Sets camera position and rotation.
+// Will possibly be made private.
+void Camera::Set(glm::vec3 trans, glm::vec3 rot){
+    translation = glm::translate(glm::mat4(1.0f), trans);
+
+    rotationX = rot[0];
+    rotationY = rot[1];
+
+    glm::mat4 rotMatX = glm::rotate(glm::mat4(1.0f), glm::radians(rotationX), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 rotMatY = glm::rotate(glm::mat4(1.0f), glm::radians(rotationY), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    glm::mat4 view = glm::inverse(rotMatY * translation);
+    viewProj = projection * rotMatX * view;
+}
+
+// Translates the camera
+// Will be refactored to not call rotate, but instead something else.
+// possibly Set. Probably Set.
+void Camera::translate(glm::vec3 trans) {
+    translation = glm::translate(translation, trans);
+    rotate(glm::vec3(0.0, 0.0, 0.0));
+}
+void Camera::rotate(glm::vec3 rot) {
+
+    rotationX += fmod(rot[0],1.0); rotationY += fmod(rot[1],1);
+    // Make sure vertical rotation doesn't exceed +- 90 degrees
+    float gap = 0.01;
+    if (rotationX >= 1.25) {
+        rotationX = 1.25 - gap;
+    }
+
+    if (rotationX <= 0.75) {
+        rotationX = 0.75 + gap;
+    }
+
+    glm::mat4 rotMatX = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rotationX), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 rotMatY = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rotationY), glm::vec3(0.0f, 1.0f, 0.0f));
+    // RotationZ is not used for arcball
+    // Kept around because "what if?"
+    // glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    glm::mat4 view = glm::inverse(rotMatY * translation);
+    // this weird stuff with translation is to get vertical rotation to be around the right point, i.e. (0,0,0)
+    // Will be refactored into more variables for readability
+    viewProj = projection * glm::inverse(translation) * rotMatX * translation * view;
+ }
+
+// Returns the ViewProjMatrix for use in the main loop
+glm::mat4 Camera::ViewProjMatrix(){
+    return viewProj;
+}
+
+// Cursor class to keep track of when the mouse is pressed, and how much it has moved since last checked
+// Will also be put into own file
+class Cursor {
+private:
+    double xpos, ypos;
+public:
+    Cursor();
+    bool isPressed;
+    double deltaX, deltaY;
+    void MoveTo(double x, double y);
+};
+
+Cursor::Cursor() { isPressed = false; }
+
+void Cursor::MoveTo(double x, double y) {
+    deltaX = xpos - x;
+    deltaY = y - ypos; // Changing order of subtraction is a quick fix to get rotation right
+    xpos = x; ypos = y;
+}
+
+// To be set as WindowUserPointer or whatever it's called
+// so camera and cursor can be passed to the callbacks
+struct WindowInfo {
+    Camera camera;
+    Cursor cursor;
+};
+
+// Will be refactored into a shader class when time permits
+unsigned int buildShader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col) {
+    // Create the vertex shader
+    unsigned int vertexShader;
+    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+    glCompileShader(vertexShader);
+
+    // Create the fragment shader
+    unsigned int fragmentShader;
+    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fragmentShader);
+    
+    // Build the shader program
+    unsigned int shaderProgram;
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragmentShader);
+    glLinkProgram(shaderProgram);
+    
+    // The shaders have been linked and can now be deleted
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
+
+    // Build the model matrix from the arguments
+    glm::mat4 translate = glm::translate(glm::mat4(1.0f), pos);
+    glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[0]), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[1]), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 rotation = rotationZ * rotationY * rotationX;
+    glm::mat4 scale = glm::scale(glm::mat4(1.0f), sca);
+	glm::mat4 model = translate * rotation * scale;
+
+    // Set the model and color uniforms in the shader program
+    glUseProgram(shaderProgram);
+	int modelLocation = glGetUniformLocation(shaderProgram, "model");
+	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+	int colorLocation = glGetUniformLocation(shaderProgram, "color");
+	glUniform3fv(colorLocation, 1, glm::value_ptr(col));
+
+	return shaderProgram;
+}
 
 /* --------------------------------------------- */
 // Callbacks
@@ -122,8 +304,6 @@ static std::string FormatDebugOutput(GLenum source, GLenum type, GLuint id, GLen
     return stringStream.str();
 }
 
-
-
 void error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Error: %s\n", description);
@@ -135,6 +315,35 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    Cursor &cursor = ((WindowInfo*)glfwGetWindowUserPointer(window))->cursor;
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        cursor.isPressed = true;
+    }
+    else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+        cursor.isPressed = false;
+    }
+}
+
+static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    Cursor &cursor = ((WindowInfo*)glfwGetWindowUserPointer(window))->cursor;
+    Camera &camera = ((WindowInfo*)glfwGetWindowUserPointer(window))->camera;
+    cursor.MoveTo (xpos, ypos);
+    if (cursor.isPressed) {
+        // I think I just divide by 1000 to get the rotation speed right. Might not be the right place to do that.
+        camera.rotate(glm::vec3(cursor.deltaY / 1000.0, cursor.deltaX / 1000.0 , 0.0));
+    }
+}
+
+// For some reason scroll_callback is my favorite part of the program
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    Camera &camera = ((WindowInfo*)glfwGetWindowUserPointer(window))->camera;
+    camera.translate(glm::vec3(0.0, 0.0, yoffset));
+}
+
 static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                    GLsizei length, const GLchar* message, const GLvoid* userParam) 
 {
@@ -142,120 +351,151 @@ static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum
     std::cout << error << std::endl;
 }
 
-
-/* --------------------------------------------- */
+ /* --------------------------------------------- */
 // Main
 /* --------------------------------------------- */
 
 int main(int argc, char** argv)
 {
-	/* --------------------------------------------- */
-	// Load settings.ini
-	/* --------------------------------------------- */
+    /* --------------------------------------------- */
+    // Load settings.ini
+    /* --------------------------------------------- */
 
-	// init reader for ini files
-	INIReader reader("assets/settings.ini");
+    // init reader for ini files
+    INIReader reader("assets/settings.ini");
 
-	// load values from ini file
-	// first param: section [window], second param: property name, third param: default value
-	int width = reader.GetInteger("window", "width", 800);
-	int height = reader.GetInteger("window", "height", 800);
-	std::string tmp_window_title = reader.Get("window", "title", "ECG");
-	const char * window_title = tmp_window_title.c_str();
+    // load values from ini file
+    // first param: section [window], second param: property name, third param: default value
+    int width = reader.GetInteger("window", "width", 80);
+    int height = reader.GetInteger("window", "height", 80);
+    std::string tmp_window_title = reader.Get("window", "title", "Title not loaded");
+    const char * window_title = tmp_window_title.c_str();
+    double fovy = reader.GetReal("camera", "fov", 360.0);
+    double zNear = reader.GetReal("camera", "near", 0.5);
+    double zFar = reader.GetReal("camera", "far", 50.0);
 
-	/* --------------------------------------------- */
-	// Init framework
-	/* --------------------------------------------- */
 
+    /* --------------------------------------------- */
+    // Init framework
+    /* --------------------------------------------- */
+    GLFWwindow* window;
+    {
+        glfwSetErrorCallback(error_callback);
 
-	glfwSetErrorCallback(error_callback);
+        if (!glfwInit())
+        {
+            EXIT_WITH_ERROR("Failed to init GLFW")
+        }
 
-	if (!glfwInit())
-	{
-		EXIT_WITH_ERROR("Failed to init GLFW")
-	}
-
-    #if _DEBUG
+#if _DEBUG
         // Create a debug OpenGL context or tell your OpenGL library (GLFW, SDL) to do so.
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-    #endif 
+#endif 
 
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
-	GLFWwindow* window = glfwCreateWindow(width, height, window_title, NULL, NULL);
-	if (!window)
-	{
-		glfwTerminate();
-		EXIT_WITH_ERROR("Failed to init openGL context or open window")
-	}
+        window = glfwCreateWindow(width, height, window_title, NULL, NULL);
+        if (!window)
+        {
+            glfwTerminate();
+            EXIT_WITH_ERROR("Failed to init openGL context or open window")
+        }
 
-	glfwSetKeyCallback(window, key_callback);
-	glfwMakeContextCurrent(window);
+        // set the callbacks
+        glfwSetKeyCallback(window, key_callback);
+        glfwSetCursorPosCallback(window, cursor_position_callback);
+        glfwSetMouseButtonCallback(window, mouse_button_callback);
+        glfwSetScrollCallback(window, scroll_callback);
+        glfwMakeContextCurrent(window);
 
-	glewExperimental = true;
-	GLenum err = glewInit();
-	if (GLEW_OK != err)
-	{
-		EXIT_WITH_ERROR("Failed to init GLEW")
-	}
+        glewExperimental = true;
+        GLenum err = glewInit();
+        if (GLEW_OK != err)
+        {
+            EXIT_WITH_ERROR("Failed to init GLEW")
+        }
 
-    #if _DEBUG
-    	// Register your callback function.
-    	glDebugMessageCallback(DebugCallback, NULL);
-    	// Enable synchronous callback. This ensures that your callback function is called
-    	// right after an error has occurred. 
-    	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    #endif
-  
+#if _DEBUG
+        // Register your debug callback function.
+        glDebugMessageCallback(DebugCallback, NULL);
+        // Enable synchronous callback. This ensures that your callback function is called
+        // right after an error has occurred. 
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#endif
 
-	glfwSwapInterval(1);
+
+        glfwSwapInterval(1);
+
+
+        if (!initFramework()) {
+            EXIT_WITH_ERROR("Failed to init framework")
+        }
+    }
+
+    /* --------------------------------------------- */
+    // Initialize scene and render loop
+    /* --------------------------------------------- */
+
+    // Enable Z depth testing
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+
+    // Build the shaders for the two different teapots
+    unsigned int redShader = buildShader(glm::vec3(1.5f, 1.0f, 0.0f),  // translation
+        glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
+        glm::vec3(1.0f, 2.0f, 1.0f),  // scale
+        glm::vec3(1.0f, 0.0f, 0.0f)); // color
+
+    unsigned int blueShader = buildShader(glm::vec3(-1.5f, -1.0f, 0.0f),
+        glm::vec3(0.0f, 0.5f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f));
+
+
+    // location of the view-projection matrices in the two shaders
+    int redProjLocation = glGetUniformLocation(redShader, "viewProj");
+    int blueProjLocation = glGetUniformLocation(blueShader, "viewProj");
+    
+
+
+    WindowInfo windowInfo = {
+        Camera(fovy, height, width, zNear, zFar),
+        Cursor()
+    };
+    glfwSetWindowUserPointer(window, (void*)&windowInfo);
+
+    Camera& camera = windowInfo.camera;
+    Cursor& cursor = windowInfo.cursor;
 
 	
-	if (!initFramework()) {
-		EXIT_WITH_ERROR("Failed to init framework")
-	}
-
-
-	
-
-	/* --------------------------------------------- */
-	// Initialize scene and render loop
-	/* --------------------------------------------- */
-
+    glm::vec3 trans = glm::vec3(0.0f, 0.0f, 6.0f);
+    glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
 
 	glClearColor(1, 1, 1, 1);
-	
 	while (!glfwWindowShouldClose(window))
 	{	
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glfwPollEvents();
+		glUseProgram(redShader);
+        glUniformMatrix4fv(redProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
+		drawTeapot();
+		glUseProgram(blueShader);
+	    glUniformMatrix4fv(blueProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
 		drawTeapot();
 		glfwSwapBuffers(window);
 	}
 
 
-
-
 	/* --------------------------------------------- */
-	// Destroy framework
+	// Destroy framework, context and exit
 	/* --------------------------------------------- */
 
 	destroyFramework();
-
-
-	/* --------------------------------------------- */
-	// Destroy context and exit
-	/* --------------------------------------------- */
-
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
-
 	return EXIT_SUCCESS;
 }
-
-
-
-
