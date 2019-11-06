@@ -51,7 +51,6 @@ private:
     glm::mat4 viewProj;
 
 public:
-    Camera();
     Camera(float fov, float height, float width, float zNear, float zFar);
     Camera(float fov, float height, float width, float zNear, float zFar, glm::vec3 trans, glm::vec3 rot);
     glm::mat4 ViewProjMatrix();
@@ -59,8 +58,6 @@ public:
     void translate(glm::vec3 trans);
     void rotate(glm::vec3 rot);
 };
-
-Camera::Camera(){}
 
 Camera::Camera(float fov, float height, float width, float zNear, float zFar) {
     float aspect = width / height;
@@ -109,6 +106,22 @@ glm::mat4 Camera::ViewProjMatrix(){
     return viewProj;
 }
 
+class Cursor {
+private:
+    double xpos, ypos;
+    bool isPressed;
+public:
+    Cursor();
+    void MoveTo(Camera *camera, double x, double y);
+};
+
+Cursor::Cursor(){}
+
+void Cursor::MoveTo(Camera *camera, double x, double y) {
+    camera->rotate(glm::vec3((ypos - y, (xpos - x), 0.0)));
+    xpos = x; ypos = y;
+}
+
 // Will be refactored into a shader class when time permits
 unsigned int buildShader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col) {
     // Create the vertex shader
@@ -152,12 +165,6 @@ unsigned int buildShader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 
 
 	return shaderProgram;
 }
-
-/* --------------------------------------------- */
-// Globals
-/* --------------------------------------------- */
-
-Camera camera = Camera();
 
 /* --------------------------------------------- */
 // Callbacks
@@ -272,7 +279,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    camera.translate(glm::vec3(0.0, 0.0, yoffset));
+    Camera *camera = (Camera*)glfwGetWindowUserPointer(window);
+    camera->translate(glm::vec3(0.0, 0.0, yoffset));
 }
 static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                    GLsizei length, const GLchar* message, const GLvoid* userParam) 
@@ -384,9 +392,8 @@ int main(int argc, char** argv)
     int redProjLocation = glGetUniformLocation(redShader, "viewProj");
     int blueProjLocation = glGetUniformLocation(blueShader, "viewProj");
 
-    camera = Camera(fovy, height, width, zNear, zFar);
-    camera.ViewProjMatrix();
-
+    Camera camera = Camera(fovy, height, width, zNear, zFar);
+    glfwSetWindowUserPointer(window, (void*)&camera);
 
 
 	glClearColor(1, 1, 1, 1);
