@@ -109,18 +109,26 @@ glm::mat4 Camera::ViewProjMatrix(){
 class Cursor {
 private:
     double xpos, ypos;
-    bool isPressed;
 public:
     Cursor();
+    bool isPressed;
     void MoveTo(Camera *camera, double x, double y);
 };
 
-Cursor::Cursor(){}
+Cursor::Cursor() { isPressed = false; }
 
 void Cursor::MoveTo(Camera *camera, double x, double y) {
-    camera->rotate(glm::vec3((ypos - y, (xpos - x), 0.0)));
+    if (isPressed){
+        camera->rotate(glm::vec3((ypos - y, (xpos - x), 0.0)));
+    }
     xpos = x; ypos = y;
 }
+
+
+struct WindowInfo {
+    Camera camera;
+    Cursor cursor;
+};
 
 // Will be refactored into a shader class when time permits
 unsigned int buildShader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col) {
@@ -277,10 +285,14 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
+static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
+
+}
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    Camera *camera = (Camera*)glfwGetWindowUserPointer(window);
-    camera->translate(glm::vec3(0.0, 0.0, yoffset));
+    Camera &camera = ((WindowInfo*)glfwGetWindowUserPointer(window))->camera;
+    camera.translate(glm::vec3(0.0, 0.0, yoffset));
 }
 static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                    GLsizei length, const GLchar* message, const GLvoid* userParam) 
@@ -342,6 +354,7 @@ int main(int argc, char** argv)
         }
 
         glfwSetKeyCallback(window, key_callback);
+        glfwSetCursorPosCallback(window, cursor_position_callback);
         glfwSetScrollCallback(window, scroll_callback);
         glfwMakeContextCurrent(window);
 
@@ -391,9 +404,15 @@ int main(int argc, char** argv)
 
     int redProjLocation = glGetUniformLocation(redShader, "viewProj");
     int blueProjLocation = glGetUniformLocation(blueShader, "viewProj");
+    
+    WindowInfo windowInfo = {
+        Camera(fovy, height, width, zNear, zFar),
+        Cursor()
+    };
+    Camera& camera = windowInfo.camera;
+    Cursor& cursor = windowInfo.cursor;
 
-    Camera camera = Camera(fovy, height, width, zNear, zFar);
-    glfwSetWindowUserPointer(window, (void*)&camera);
+    glfwSetWindowUserPointer(window, (void*)&windowInfo);
 
 
 	glClearColor(1, 1, 1, 1);
