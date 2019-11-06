@@ -46,46 +46,70 @@ const char* fragmentShaderSource =
 class Camera {
 private:
     glm::mat4 projection;
+    glm::mat4 translation;
+    glm::mat4 rotation;
     glm::mat4 viewProj;
 
 public:
+    Camera();
     Camera(float fov, float height, float width, float zNear, float zFar);
     Camera(float fov, float height, float width, float zNear, float zFar, glm::vec3 trans, glm::vec3 rot);
     glm::mat4 ViewProjMatrix();
-    void Update(glm::vec3 trans, glm::vec3 rot);
+    void Set(glm::vec3 trans, glm::vec3 rot);
+    void translate(glm::vec3 trans);
+    void rotate(glm::vec3 rot);
 };
+
+Camera::Camera(){}
 
 Camera::Camera(float fov, float height, float width, float zNear, float zFar) {
     float aspect = width / height;
     projection = glm::perspective(fov, aspect, zNear, zFar);
     glm::vec3 trans = glm::vec3(0.0f, 0.0f, 12.0f);
     glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
-    Update(trans, rot);
+    Set(trans, rot);
 }
 
 Camera::Camera(float fov, float height, float width, float zNear, float zFar, glm::vec3 trans, glm::vec3 rot) {
     float aspect = width / height;
     projection = glm::perspective(fov, aspect, zNear, zFar);
-    Update(trans, rot);
+    Set(trans, rot);
 }
 
-void Camera::Update(glm::vec3 trans, glm::vec3 rot){
-    glm::mat4 translation = glm::translate(glm::mat4(1.0f), trans);
-
+void Camera::Set(glm::vec3 trans, glm::vec3 rot){
+    translation = glm::translate(glm::mat4(1.0f), trans);
     glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(rot[0]), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(rot[1]), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(rot[2]), glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::mat4 rotation = rotationZ * rotationY * rotationX;
+    rotation =  rotationZ * rotationY * rotationX; // Which effect does the order of the multiplications have?
+
+    glm::mat4 view = glm::inverse(rotation * translation);
+    viewProj = projection * view;
     //std::cout << glm::to_string(rotation) << std::endl << std::endl;
+}
+
+void Camera::translate(glm::vec3 trans) {
+    translation = glm::translate(translation, trans); // do I want it to use the id matrix instead?
     glm::mat4 view = glm::inverse(rotation * translation);
     viewProj = projection * view;
 }
+void Camera::rotate(glm::vec3 rot) {
+    glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[0]), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[1]), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+    rotation =  rotationZ * rotationY * rotationX * rotation; // Which effect does the order of the multiplications have?
+
+    glm::mat4 view = glm::inverse(rotation * translation);
+    viewProj = projection * view;
+ }
+
 
 glm::mat4 Camera::ViewProjMatrix(){
     //std::cout << "VPM: " << glm::to_string(viewProj) << std::endl << std::endl;
     return viewProj;
 }
 
+// Will be refactored into a shader class when time permits
 unsigned int buildShader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col) {
     // Create the vertex shader
     unsigned int vertexShader;
@@ -129,6 +153,11 @@ unsigned int buildShader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 
 	return shaderProgram;
 }
 
+/* --------------------------------------------- */
+// Globals
+/* --------------------------------------------- */
+
+Camera camera = Camera();
 
 /* --------------------------------------------- */
 // Callbacks
@@ -241,6 +270,10 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 		glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    camera.translate(glm::vec3(0.0, 0.0, yoffset));
+}
 static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                    GLsizei length, const GLchar* message, const GLvoid* userParam) 
 {
@@ -254,27 +287,27 @@ static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum
 
 int main(int argc, char** argv)
 {
-	/* --------------------------------------------- */
-	// Load settings.ini
-	/* --------------------------------------------- */
+    /* --------------------------------------------- */
+    // Load settings.ini
+    /* --------------------------------------------- */
 
-	// init reader for ini files
-	INIReader reader("assets/settings.ini");
+    // init reader for ini files
+    INIReader reader("assets/settings.ini");
 
-	// load values from ini file
-	// first param: section [window], second param: property name, third param: default value
-	int width = reader.GetInteger("window", "width", 80);
-	int height = reader.GetInteger("window", "height", 80);
-	std::string tmp_window_title = reader.Get("window", "title", "Title not loaded");
-	const char * window_title = tmp_window_title.c_str();
-	double fovy = reader.GetReal("camera", "fov", 360.0);
-	double zNear = reader.GetReal("camera", "near", 0.5);
-	double zFar = reader.GetReal("camera", "far", 50.0);
+    // load values from ini file
+    // first param: section [window], second param: property name, third param: default value
+    int width = reader.GetInteger("window", "width", 80);
+    int height = reader.GetInteger("window", "height", 80);
+    std::string tmp_window_title = reader.Get("window", "title", "Title not loaded");
+    const char * window_title = tmp_window_title.c_str();
+    double fovy = reader.GetReal("camera", "fov", 360.0);
+    double zNear = reader.GetReal("camera", "near", 0.5);
+    double zFar = reader.GetReal("camera", "far", 50.0);
 
 
-	/* --------------------------------------------- */
-	// Init framework
-	/* --------------------------------------------- */
+    /* --------------------------------------------- */
+    // Init framework
+    /* --------------------------------------------- */
     GLFWwindow* window;
     {
         glfwSetErrorCallback(error_callback);
@@ -301,6 +334,7 @@ int main(int argc, char** argv)
         }
 
         glfwSetKeyCallback(window, key_callback);
+        glfwSetScrollCallback(window, scroll_callback);
         glfwMakeContextCurrent(window);
 
         glewExperimental = true;
@@ -327,31 +361,33 @@ int main(int argc, char** argv)
         }
     }
 
-	/* --------------------------------------------- */
-	// Initialize scene and render loop
-	/* --------------------------------------------- */
+    /* --------------------------------------------- */
+    // Initialize scene and render loop
+    /* --------------------------------------------- */
 
     // Enable Z depth testing
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS); 
-    
+    glDepthFunc(GL_LESS);
+
     // Build the shaders for the two different teapots
-	unsigned int redShader = buildShader(glm::vec3(1.5f, 1.0f, 0.0f),  // translation
-		                                 glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
-	                                     glm::vec3(1.0f, 2.0f, 1.0f),  // scale
-	                                     glm::vec3(1.0f, 0.0f, 0.0f)); // color
+    unsigned int redShader = buildShader(glm::vec3(1.5f, 1.0f, 0.0f),  // translation
+        glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
+        glm::vec3(1.0f, 2.0f, 1.0f),  // scale
+        glm::vec3(1.0f, 0.0f, 0.0f)); // color
 
-    unsigned int blueShader = buildShader(glm::vec3(-1.5f, -1.0f, 0.0f), 
-	                                     glm::vec3(0.0f, 0.5f, 0.0f), 
-	                                     glm::vec3(1.0f, 1.0f, 1.0f), 
-	                                     glm::vec3(0.0f, 0.0f, 1.0f));
+    unsigned int blueShader = buildShader(glm::vec3(-1.5f, -1.0f, 0.0f),
+        glm::vec3(0.0f, 0.5f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f));
 
 
-	int redProjLocation = glGetUniformLocation(redShader, "viewProj");
-	int blueProjLocation = glGetUniformLocation(blueShader, "viewProj");
+    int redProjLocation = glGetUniformLocation(redShader, "viewProj");
+    int blueProjLocation = glGetUniformLocation(blueShader, "viewProj");
 
-    Camera camera = Camera(fovy, height, width, zNear, zFar);
+    camera = Camera(fovy, height, width, zNear, zFar);
     camera.ViewProjMatrix();
+
+
 
 	glClearColor(1, 1, 1, 1);
 	
@@ -367,7 +403,7 @@ int main(int argc, char** argv)
 		glfwPollEvents();
         //glm::vec3 trans = glm::vec3(0.0f, 0.0f, 6.0f);
         //glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
-        camera.Update(trans, glm::vec3(360.0f, 360.0f * autoRot(), 360.0f));
+        camera.rotate(glm::vec3(0.0f, 0.01f, 0.00f));
 		glUseProgram(redShader);
         glUniformMatrix4fv(redProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
 		drawTeapot();
