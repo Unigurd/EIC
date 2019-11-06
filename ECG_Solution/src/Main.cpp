@@ -11,17 +11,15 @@
 #include "Utils.h"
 #include "glm\matrix.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include "glm/ext.hpp"
 
-float autoRot() {
+ float autoRot() {
 	return ((sin(glfwGetTime()) / 2.0f) + 0.5f);
 }
 
-/* --------------------------------------------- */
-// Prototypes
-/* --------------------------------------------- */
 // CHANGE VERSION
 const char* vertexShaderSource =
-"#version 330 core\n"
+"#version 430 core\n"
 "layout (location = 0) in vec3 aPos;\n"
 "uniform mat4 model;\n"
 "uniform mat4 viewProj;\n"
@@ -32,50 +30,96 @@ const char* vertexShaderSource =
 "}\n";
 
 const char* fragmentShaderSource =
-"#version 330 core\n"
+"#version 430 core\n"
 "uniform vec3 color;\n"
 "out vec4 FragColor;\n"
 "\n"
 "void main()\n"
 "{\n"
-"    FragColor = vec4(1.0f, 0.0f, 0.0f, 1.0f);\n"
+"    FragColor = vec4(color, 1.0f);\n"
 "}\n";
 
+/* --------------------------------------------- */
+// Classes
+/* --------------------------------------------- */
+
+class Camera {
+private:
+    glm::mat4 projection;
+    glm::mat4 viewProj;
+
+public:
+    Camera(float fov, float height, float width, float zNear, float zFar);
+    Camera(float fov, float height, float width, float zNear, float zFar, glm::vec3 trans, glm::vec3 rot);
+    glm::mat4 ViewProjMatrix();
+    void Update(glm::vec3 trans, glm::vec3 rot);
+};
+
+Camera::Camera(float fov, float height, float width, float zNear, float zFar) {
+    float aspect = width / height;
+    projection = glm::perspective(fov, aspect, zNear, zFar);
+    glm::vec3 trans = glm::vec3(0.0f, 0.0f, 12.0f);
+    glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
+    Update(trans, rot);
+}
+
+Camera::Camera(float fov, float height, float width, float zNear, float zFar, glm::vec3 trans, glm::vec3 rot) {
+    float aspect = width / height;
+    projection = glm::perspective(fov, aspect, zNear, zFar);
+    Update(trans, rot);
+}
+
+void Camera::Update(glm::vec3 trans, glm::vec3 rot){
+    glm::mat4 translation = glm::translate(glm::mat4(1.0f), trans);
+    glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f), rot);
+    glm::mat4 view = glm::inverse(rotation * translation);
+    viewProj = (projection * view);
+}
+
+glm::mat4 Camera::ViewProjMatrix(){
+    std::cout << "VPM: " << glm::to_string(viewProj) << std::endl << std::endl;
+    return viewProj;
+}
+
 unsigned int buildShader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col) {
+    // Create the vertex shader
     unsigned int vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
+
+    // Create the fragment shader
     unsigned int fragmentShader;
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
     glCompileShader(fragmentShader);
     
+    // Build the shader program
     unsigned int shaderProgram;
     shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
+    
+    // The shaders have been linked and can now be deleted
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
+    // Build the model matrix from the arguments
     glm::mat4 translate = glm::translate(glm::mat4(1.0f), pos);
-    glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), glm::radians(180.0f), rot);
+    glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f), rot);
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), sca);
 	glm::mat4 model = translate * rotate * scale;
 
+    // Set the model and color uniforms in the shader program
     glUseProgram(shaderProgram);
 	int modelLocation = glGetUniformLocation(shaderProgram, "model");
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
 	int colorLocation = glGetUniformLocation(shaderProgram, "color");
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(col));
+	glUniform3fv(colorLocation, 1, glm::value_ptr(col));
 
 	return shaderProgram;
 }
-
-/* --------------------------------------------- */
-// Global variables
-/* --------------------------------------------- */
 
 
 /* --------------------------------------------- */
@@ -178,8 +222,6 @@ static std::string FormatDebugOutput(GLenum source, GLenum type, GLuint id, GLen
     return stringStream.str();
 }
 
-
-
 void error_callback(int error, const char* description)
 {
 	fprintf(stderr, "Error: %s\n", description);
@@ -198,8 +240,7 @@ static void APIENTRY DebugCallback(GLenum source, GLenum type, GLuint id, GLenum
     std::cout << error << std::endl;
 }
 
-
-/* --------------------------------------------- */
+ /* --------------------------------------------- */
 // Main
 /* --------------------------------------------- */
 
@@ -222,123 +263,128 @@ int main(int argc, char** argv)
 	double zNear = reader.GetReal("camera", "near", 0.5);
 	double zFar = reader.GetReal("camera", "far", 50.0);
 
+
 	/* --------------------------------------------- */
 	// Init framework
 	/* --------------------------------------------- */
+    GLFWwindow* window;
+    {
+        glfwSetErrorCallback(error_callback);
 
+        if (!glfwInit())
+        {
+            EXIT_WITH_ERROR("Failed to init GLFW")
+        }
 
-	glfwSetErrorCallback(error_callback);
-
-	if (!glfwInit())
-	{
-		EXIT_WITH_ERROR("Failed to init GLFW")
-	}
-
-    #if _DEBUG
+#if _DEBUG
         // Create a debug OpenGL context or tell your OpenGL library (GLFW, SDL) to do so.
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-    #endif 
+#endif 
 
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 
-	GLFWwindow* window = glfwCreateWindow(width, height, window_title, NULL, NULL);
-	if (!window)
-	{
-		glfwTerminate();
-		EXIT_WITH_ERROR("Failed to init openGL context or open window")
-	}
+        window = glfwCreateWindow(width, height, window_title, NULL, NULL);
+        if (!window)
+        {
+            glfwTerminate();
+            EXIT_WITH_ERROR("Failed to init openGL context or open window")
+        }
 
-	glfwSetKeyCallback(window, key_callback);
-	glfwMakeContextCurrent(window);
+        glfwSetKeyCallback(window, key_callback);
+        glfwMakeContextCurrent(window);
 
-	glewExperimental = true;
-	GLenum err = glewInit();
-	if (GLEW_OK != err)
-	{
-		EXIT_WITH_ERROR("Failed to init GLEW")
-	}
+        glewExperimental = true;
+        GLenum err = glewInit();
+        if (GLEW_OK != err)
+        {
+            EXIT_WITH_ERROR("Failed to init GLEW")
+        }
 
-    #if _DEBUG
-    	// Register your callback function.
-    	glDebugMessageCallback(DebugCallback, NULL);
-    	// Enable synchronous callback. This ensures that your callback function is called
-    	// right after an error has occurred. 
-    	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    #endif
-  
+#if _DEBUG
+        // Register your callback function.
+        glDebugMessageCallback(DebugCallback, NULL);
+        // Enable synchronous callback. This ensures that your callback function is called
+        // right after an error has occurred. 
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+#endif
 
-	glfwSwapInterval(1);
 
-	
-	if (!initFramework()) {
-		EXIT_WITH_ERROR("Failed to init framework")
-	}
+        glfwSwapInterval(1);
 
+
+        if (!initFramework()) {
+            EXIT_WITH_ERROR("Failed to init framework")
+        }
+    }
 
 	/* --------------------------------------------- */
 	// Initialize scene and render loop
 	/* --------------------------------------------- */
 
-    /* Enable Z depth testing so objects closest to the viewpoint are in front of objects further away */
-	// Taken from  khronos.org
+    // Enable Z depth testing
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS); 
     
-	
-	unsigned int redShader = buildShader(glm::vec3(1.5f, 1.0f, 0.0f), 
-		                                 glm::vec3(0.0f, 0.0f, 0.0f), 
-	                                     glm::vec3(1.0f, 2.0f, 1.0f), 
-	                                     glm::vec3(1.0f, 0.0f, 0.0f));
+    // Build the shaders for the two different teapots
+	unsigned int redShader = buildShader(glm::vec3(1.5f, 1.0f, 0.0f),  // translation
+		                                 glm::vec3(1.0f, 1.0f, 1.0f),  // rotation
+	                                     glm::vec3(1.0f, 2.0f, 1.0f),  // scale
+	                                     glm::vec3(1.0f, 0.0f, 0.0f)); // color
 
-	unsigned int blueShader = buildShader(glm::vec3(-1.5f, -1.0f, 0.0f), 
-		                                 glm::vec3(0.0f, 0.5f, 0.0f), 
+    unsigned int blueShader = buildShader(glm::vec3(-1.5f, -1.0f, 0.0f), 
+	                                     glm::vec3(0.0f, 0.5f, 0.2f), 
 	                                     glm::vec3(1.0f, 1.0f, 1.0f), 
 	                                     glm::vec3(0.0f, 0.0f, 1.0f));
 
 
-	double aspect = (double)width / (double)height;
-	glm::mat4 projection = glm::perspective(45.0, aspect, zNear, zFar);
 	int redProjLocation = glGetUniformLocation(redShader, "viewProj");
 	int blueProjLocation = glGetUniformLocation(blueShader, "viewProj");
 
+    Camera camera = Camera(fovy, height, width, zNear, zFar);
+    camera.ViewProjMatrix();
+
 	glClearColor(1, 1, 1, 1);
 	
+    double fov = 45.0;
+    double aspect = width / height;
+    glm::mat4 projection = glm::perspective(fov, aspect, zNear, zFar);
+    glm::vec3 trans = glm::vec3(0.0f, 0.0f, 12.0f);
+    glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
+    glm::mat4 translation = glm::translate(glm::mat4(1.0f), trans);
+    glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f), rot);
+    glm::mat4 view = glm::inverse(rotation * translation);
+    glm::mat4 viewProj = projection * view;
+    
+
 	while (!glfwWindowShouldClose(window))
 	{	
+        // Spoerg jesper om klasse til callbacks
+        // Om hvornaar man bruger struct og hvornaar man bruger class
+        // Maaske om returvaerdi fra camera.ViewProjMatrix
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glfwPollEvents();
-	    glm::mat4 distance = glm::translate(glm::mat4(1.0f),glm::vec3(0.0f, 0.0f, 6.0f));
-	    glm::mat4 rotateCam = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f*autoRot()), glm::vec3(0.0f, 1.0f, 0.0f));
-	    glm::mat4 view = glm::inverse(rotateCam * distance);
-	    glm::mat4 viewProj = projection * view;
+        //glm::vec3 trans = glm::vec3(0.0f, 0.0f, 6.0f);
+        //glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
+        camera.Update(trans, glm::vec3(1.0f, 2.0f * autoRot(), 1.0f));
 		glUseProgram(redShader);
-	    glUniformMatrix4fv(redProjLocation, 1, GL_FALSE, glm::value_ptr(viewProj));
+        glUniformMatrix4fv(redProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
 		drawTeapot();
 		glUseProgram(blueShader);
-	    glUniformMatrix4fv(blueProjLocation, 1, GL_FALSE, glm::value_ptr(viewProj));
+	    glUniformMatrix4fv(blueProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
 		drawTeapot();
 		glfwSwapBuffers(window);
 	}
 
 
-
-
 	/* --------------------------------------------- */
-	// Destroy framework
+	// Destroy framework, context and exit
 	/* --------------------------------------------- */
 
 	destroyFramework();
-
-
-	/* --------------------------------------------- */
-	// Destroy context and exit
-	/* --------------------------------------------- */
-
 	glfwDestroyWindow(window);
 	glfwTerminate();
-
 
 	return EXIT_SUCCESS;
 }
