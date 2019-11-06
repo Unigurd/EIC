@@ -16,6 +16,19 @@
 #include <iostream>
 #include <vector>
 
+string readFile(const string &fileName)
+{
+    std::ifstream ifs(fileName.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
+
+    std::ifstream::pos_type fileSize = ifs.tellg();
+    ifs.seekg(0, std::ios::beg);
+
+    std::vector<char> bytes(fileSize);
+    ifs.read(bytes.data(), fileSize);
+
+    return string(bytes.data(), fileSize);
+}
+
 
 //The GLSL source for the two kinds of shaders
 // Sorry, I didn't have time to put these in files.
@@ -46,19 +59,20 @@ const char* fragmentShaderSource =
 /* --------------------------------------------- */
 
 // The Camera class
-// Will be moved into it's own file
+// Will be moved into its own file
 class Camera {
 private:
     glm::mat4 projection; // This is constant
     glm::mat4 translation;
+    glm::mat4 rotation;
     float rotationX, rotationY; // 1.0 is one full rotation
     glm::mat4 viewProj;
+    void updateViewProj();
 
 public:
     Camera(float fov, float height, float width, float zNear, float zFar);
     Camera(float fov, float height, float width, float zNear, float zFar, glm::vec3 trans, glm::vec3 rot);
     glm::mat4 ViewProjMatrix();
-    void Set(glm::vec3 trans, glm::vec3 rot);
     void translate(glm::vec3 trans);
     void rotate(glm::vec3 rot);
 };
@@ -66,72 +80,52 @@ public:
 Camera::Camera(float fov, float height, float width, float zNear, float zFar) {
     float aspect = width / height;
     projection = glm::perspective(fov, aspect, zNear, zFar); // Not changed again since it is constant.
-    glm::vec3 trans = glm::vec3(0.0f, 0.0f, 6.0f);
-    glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
-    Set(trans, rot);
+    translation = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 6.0f));
+    rotationX = 1.0f; rotationY = 1.0f;
+    updateViewProj();
 }
 
 Camera::Camera(float fov, float height, float width, float zNear, float zFar, glm::vec3 trans, glm::vec3 rot) {
     float aspect = width / height;
     projection = glm::perspective(fov, aspect, zNear, zFar); // Not changed again since it is constant.
-    Set(trans, rot);
-}
-
-// Both Set, translate and rotate methods are a mess
-// because I hodge-podged the arcball camera together last minute.
-// Will be cleaned up next time, I promise (y)
-
-// Sets camera position and rotation.
-// Will possibly be made private.
-void Camera::Set(glm::vec3 trans, glm::vec3 rot){
     translation = glm::translate(glm::mat4(1.0f), trans);
-
-    rotationX = rot[0];
-    rotationY = rot[1];
-
-    glm::mat4 rotMatX = glm::rotate(glm::mat4(1.0f), glm::radians(rotationX), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 rotMatY = glm::rotate(glm::mat4(1.0f), glm::radians(rotationY), glm::vec3(0.0f, 1.0f, 0.0f));
-
-    glm::mat4 view = glm::inverse(rotMatY * translation);
-    viewProj = projection * rotMatX * view;
+    rotationX = 1.0f; rotationY = 1.0f;
+    updateViewProj();
 }
 
-// Translates the camera
-// Will be refactored to not call rotate, but instead something else.
-// possibly Set. Probably Set.
+void Camera::updateViewProj(){
+    glm::mat4 rotMatX = glm::rotate(glm::mat4(1.0f), glm::radians(360 * rotationX), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 rotMatY = glm::rotate(glm::mat4(1.0f), glm::radians(360 * rotationY), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    glm::mat4 view = glm::inverse(rotMatY * rotMatX * translation);
+    viewProj = projection * view;
+}
+
 void Camera::translate(glm::vec3 trans) {
     translation = glm::translate(translation, trans);
-    rotate(glm::vec3(0.0, 0.0, 0.0));
+    updateViewProj();
 }
+
 void Camera::rotate(glm::vec3 rot) {
-
-    rotationX += fmod(rot[0],1.0); rotationY += fmod(rot[1],1);
+    rotationX += rot[0]; rotationY += rot[1];
     // Make sure vertical rotation doesn't exceed +- 90 degrees
-    float gap = 0.01;
-    if (rotationX >= 1.25) {
-        rotationX = 1.25 - gap;
+    float gap = 0.01f;
+    if (rotationX >= 1.25f) {
+        rotationX = 1.25f - gap;
     }
 
-    if (rotationX <= 0.75) {
-        rotationX = 0.75 + gap;
+    if (rotationX <= 0.75f) {
+        rotationX = 0.75f + gap;
     }
 
-    glm::mat4 rotMatX = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rotationX), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 rotMatY = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rotationY), glm::vec3(0.0f, 1.0f, 0.0f));
-    // RotationZ is not used for arcball
-    // Kept around because "what if?"
-    // glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[2]), glm::vec3(0.0f, 0.0f, 1.0f));
-
-    glm::mat4 view = glm::inverse(rotMatY * translation);
-    // this weird stuff with translation is to get vertical rotation to be around the right point, i.e. (0,0,0)
-    // Will be refactored into more variables for readability
-    viewProj = projection * glm::inverse(translation) * rotMatX * translation * view;
+    updateViewProj();
  }
 
 // Returns the ViewProjMatrix for use in the main loop
 glm::mat4 Camera::ViewProjMatrix(){
     return viewProj;
 }
+
 
 // Cursor class to keep track of when the mouse is pressed, and how much it has moved since last checked
 // Will also be put into own file
@@ -149,7 +143,7 @@ Cursor::Cursor() { isPressed = false; }
 
 void Cursor::MoveTo(double x, double y) {
     deltaX = xpos - x;
-    deltaY = y - ypos; // Changing order of subtraction is a quick fix to get rotation right
+    deltaY = ypos - y;
     xpos = x; ypos = y;
 }
 
