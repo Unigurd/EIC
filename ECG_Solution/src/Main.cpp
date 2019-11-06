@@ -71,13 +71,17 @@ Camera::Camera(float fov, float height, float width, float zNear, float zFar, gl
 
 void Camera::Update(glm::vec3 trans, glm::vec3 rot){
     glm::mat4 translation = glm::translate(glm::mat4(1.0f), trans);
-    glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f), rot);
-    glm::mat4 view = glm::inverse(rotation * translation);
+
+    glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(rot[0]), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(rot[1]), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(rot[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+    //std::cout << glm::to_string(rotation) << std::endl << std::endl;
+    glm::mat4 view = glm::inverse(rotationZ * rotationY * rotationX * translation);
     viewProj = (projection * view);
 }
 
 glm::mat4 Camera::ViewProjMatrix(){
-    std::cout << "VPM: " << glm::to_string(viewProj) << std::endl << std::endl;
+    //std::cout << "VPM: " << glm::to_string(viewProj) << std::endl << std::endl;
     return viewProj;
 }
 
@@ -347,16 +351,8 @@ int main(int argc, char** argv)
 
 	glClearColor(1, 1, 1, 1);
 	
-    double fov = 45.0;
-    double aspect = width / height;
-    glm::mat4 projection = glm::perspective(fov, aspect, zNear, zFar);
-    glm::vec3 trans = glm::vec3(0.0f, 0.0f, 12.0f);
+    glm::vec3 trans = glm::vec3(0.0f, 0.0f, 6.0f);
     glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
-    glm::mat4 translation = glm::translate(glm::mat4(1.0f), trans);
-    glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f), rot);
-    glm::mat4 view = glm::inverse(rotation * translation);
-    glm::mat4 viewProj = projection * view;
-    
 
 	while (!glfwWindowShouldClose(window))
 	{	
@@ -367,7 +363,7 @@ int main(int argc, char** argv)
 		glfwPollEvents();
         //glm::vec3 trans = glm::vec3(0.0f, 0.0f, 6.0f);
         //glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
-        camera.Update(trans, glm::vec3(1.0f, 2.0f * autoRot(), 1.0f));
+        camera.Update(trans, glm::vec3(360.0f, 360.0f * autoRot(), 360.0f));
 		glUseProgram(redShader);
         glUniformMatrix4fv(redProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
 		drawTeapot();
