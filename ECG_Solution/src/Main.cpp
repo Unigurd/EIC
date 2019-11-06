@@ -75,9 +75,10 @@ void Camera::Update(glm::vec3 trans, glm::vec3 rot){
     glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(rot[0]), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(rot[1]), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(rot[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 rotation = rotationZ * rotationY * rotationX;
     //std::cout << glm::to_string(rotation) << std::endl << std::endl;
-    glm::mat4 view = glm::inverse(rotationZ * rotationY * rotationX * translation);
-    viewProj = (projection * view);
+    glm::mat4 view = glm::inverse(rotation * translation);
+    viewProj = projection * view;
 }
 
 glm::mat4 Camera::ViewProjMatrix(){
@@ -111,9 +112,12 @@ unsigned int buildShader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 
 
     // Build the model matrix from the arguments
     glm::mat4 translate = glm::translate(glm::mat4(1.0f), pos);
-    glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f), rot);
+    glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[0]), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[1]), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 rotation = rotationZ * rotationY * rotationX;
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), sca);
-	glm::mat4 model = translate * rotate * scale;
+	glm::mat4 model = translate * rotation * scale;
 
     // Set the model and color uniforms in the shader program
     glUseProgram(shaderProgram);
@@ -333,12 +337,12 @@ int main(int argc, char** argv)
     
     // Build the shaders for the two different teapots
 	unsigned int redShader = buildShader(glm::vec3(1.5f, 1.0f, 0.0f),  // translation
-		                                 glm::vec3(1.0f, 1.0f, 1.0f),  // rotation
+		                                 glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
 	                                     glm::vec3(1.0f, 2.0f, 1.0f),  // scale
 	                                     glm::vec3(1.0f, 0.0f, 0.0f)); // color
 
     unsigned int blueShader = buildShader(glm::vec3(-1.5f, -1.0f, 0.0f), 
-	                                     glm::vec3(0.0f, 0.5f, 0.2f), 
+	                                     glm::vec3(0.0f, 0.5f, 0.0f), 
 	                                     glm::vec3(1.0f, 1.0f, 1.0f), 
 	                                     glm::vec3(0.0f, 0.0f, 1.0f));
 
