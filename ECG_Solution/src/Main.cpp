@@ -154,8 +154,20 @@ struct WindowInfo {
     Cursor cursor;
 };
 
-// Will be refactored into a shader class when time permits
-unsigned int buildShader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col) {
+class Shader {
+private:
+    unsigned int id;
+public:
+    Shader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col);
+    unsigned int ID();
+};
+
+// Will take the source as argument when I get around to reading them from file
+Shader::Shader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col) {
+    // get previously bound shader to restore later
+    GLint prevId;
+    glGetIntegerv(GL_CURRENT_PROGRAM,&prevId);
+
     // Create the vertex shader
     unsigned int vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -169,11 +181,10 @@ unsigned int buildShader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 
     glCompileShader(fragmentShader);
     
     // Build the shader program
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+    id = glCreateProgram();
+    glAttachShader(id, vertexShader);
+    glAttachShader(id, fragmentShader);
+    glLinkProgram(id);
     
     // The shaders have been linked and can now be deleted
     glDeleteShader(vertexShader);
@@ -189,13 +200,39 @@ unsigned int buildShader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 
 	glm::mat4 model = translate * rotation * scale;
 
     // Set the model and color uniforms in the shader program
-    glUseProgram(shaderProgram);
-	int modelLocation = glGetUniformLocation(shaderProgram, "model");
+    glUseProgram(id);
+	int modelLocation = glGetUniformLocation(id, "model");
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
-	int colorLocation = glGetUniformLocation(shaderProgram, "color");
+	int colorLocation = glGetUniformLocation(id, "color");
 	glUniform3fv(colorLocation, 1, glm::value_ptr(col));
 
-	return shaderProgram;
+    // restore previously bound shader
+    glUseProgram(prevId);
+}
+
+unsigned int Shader::ID() { return id; }
+
+struct BindShader {
+private:
+    GLint prevId;
+
+public:
+    BindShader(Shader &shader);
+    ~BindShader();
+};
+
+// This class exists to make sure that the previously bound shader is
+// restored when this binding goes out of scope
+BindShader::BindShader(Shader &shader) {
+    // get previously bound shader to restore later
+    glGetIntegerv(GL_CURRENT_PROGRAM,&prevId);
+
+    // bind new shader
+    glUseProgram(shader.ID());
+}
+
+BindShader::~BindShader() {
+    glUseProgram(prevId);
 }
 
 /* --------------------------------------------- */
@@ -438,22 +475,21 @@ int main(int argc, char** argv)
 
 
     // Build the shaders for the two different teapots
-    unsigned int redShader = buildShader(glm::vec3(1.5f, 1.0f, 0.0f),  // translation
+    Shader &redShader = Shader(glm::vec3(1.5f, 1.0f, 0.0f),  // translation
         glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
         glm::vec3(1.0f, 2.0f, 1.0f),  // scale
         glm::vec3(1.0f, 0.0f, 0.0f)); // color
 
-    unsigned int blueShader = buildShader(glm::vec3(-1.5f, -1.0f, 0.0f),
+    Shader &blueShader = Shader(glm::vec3(-1.5f, -1.0f, 0.0f),
         glm::vec3(0.0f, 0.5f, 0.0f),
         glm::vec3(1.0f, 1.0f, 1.0f),
         glm::vec3(0.0f, 0.0f, 1.0f));
 
 
     // location of the view-projection matrices in the two shaders
-    int redProjLocation = glGetUniformLocation(redShader, "viewProj");
-    int blueProjLocation = glGetUniformLocation(blueShader, "viewProj");
+    int redProjLocation = glGetUniformLocation(redShader.ID(), "viewProj");
+    int blueProjLocation = glGetUniformLocation(blueShader.ID(), "viewProj");
     
-
 
     WindowInfo windowInfo = {
         Camera(fovy, height, width, zNear, zFar),
@@ -473,10 +509,10 @@ int main(int argc, char** argv)
 	{	
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glfwPollEvents();
-		glUseProgram(redShader);
+		BindShader useRed(redShader);
         glUniformMatrix4fv(redProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
 		drawTeapot();
-		glUseProgram(blueShader);
+		BindShader useBlue(blueShader);
 	    glUniformMatrix4fv(blueProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
 		drawTeapot();
 		glfwSwapBuffers(window);
