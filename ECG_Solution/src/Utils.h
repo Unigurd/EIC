@@ -13,6 +13,8 @@
 #include <GLFW\glfw3.h>
 #include <glm\gtc\matrix_transform.hpp>
 #include <glm\glm.hpp>
+#include <fstream>
+#include <filesystem>
 
 #define EXIT_WITH_ERROR(err) \
 	std::cout << "ERROR: " << err << std::endl; \
@@ -52,6 +54,20 @@ public:
 
 	~DDSImage() { if (data != nullptr) { delete[] data; data = nullptr; } }
 };
+
+// Reads a file and returns as string
+// No considerations taken for efficiency
+string readFile(std::filesystem::path p) {
+    std::ifstream file(p);
+    std::string str;
+    std::string tmp;
+    while (std::getline(file, tmp))
+    {
+        str += tmp;
+        str.push_back('\n');
+    }
+    return str;
+}
 
 
 /* --------------------------------------------- */
