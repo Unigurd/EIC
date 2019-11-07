@@ -109,7 +109,7 @@ void Camera::translate(glm::vec3 trans) {
 void Camera::rotate(glm::vec3 rot) {
     rotationX += rot[0]; rotationY += rot[1];
     // Make sure vertical rotation doesn't exceed +- 90 degrees
-    float gap = 0.01f;
+    float gap = 0.001f;
     if (rotationX >= 1.25f) {
         rotationX = 1.25f - gap;
     }
@@ -221,8 +221,8 @@ public:
     ~BindShader();
 };
 
-// This class exists to make sure that the previously bound shader is
-// restored when this binding goes out of scope
+// This class exists to make sure that the previously bound
+// shader is restored when this binding goes out of scope
 BindShader::BindShader(Shader &shader) {
     // get previously bound shader to restore later
     glGetIntegerv(GL_CURRENT_PROGRAM,&prevId);
