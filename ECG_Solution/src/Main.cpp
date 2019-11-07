@@ -15,44 +15,21 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <filesystem>
+namespace fs = std::filesystem;
 
-string readFile(const string &fileName)
-{
-    std::ifstream ifs(fileName.c_str(), std::ios::in | std::ios::binary | std::ios::ate);
-
-    std::ifstream::pos_type fileSize = ifs.tellg();
-    ifs.seekg(0, std::ios::beg);
-
-    std::vector<char> bytes(fileSize);
-    ifs.read(bytes.data(), fileSize);
-
-    return string(bytes.data(), fileSize);
+string readFile(std::filesystem::path p) {
+    std::ifstream file(p);
+    std::string str;
+    std::string tmp;
+    while (std::getline(file, tmp))
+    {
+        str += tmp;
+        str.push_back('\n');
+    }
+    return str;
 }
 
-
-//The GLSL source for the two kinds of shaders
-// Sorry, I didn't have time to put these in files.
-// I did this kinda last minute.. ;)
-const char* vertexShaderSource =
-"#version 430 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"uniform mat4 model;\n"
-"uniform mat4 viewProj;\n"
-
-"void main()\n"
-"{\n"
-"    gl_Position = viewProj * model * vec4(aPos,1);\n"
-"}\n";
-
-const char* fragmentShaderSource =
-"#version 430 core\n"
-"uniform vec3 color;\n"
-"out vec4 FragColor;\n"
-"\n"
-"void main()\n"
-"{\n"
-"    FragColor = vec4(color, 1.0f);\n"
-"}\n";
 
 /* --------------------------------------------- */
 // Classes
@@ -139,12 +116,13 @@ public:
     void MoveTo(double x, double y);
 };
 
-Cursor::Cursor() { isPressed = false; }
+Cursor::Cursor() { isPressed = false; } // Should poll to get the cursors position
 
 void Cursor::MoveTo(double x, double y) {
     deltaX = xpos - x;
     deltaY = ypos - y;
-    xpos = x; ypos = y;
+    xpos = x;
+    ypos = y;
 }
 
 // To be set as WindowUserPointer or whatever it's called
@@ -158,12 +136,15 @@ class Shader {
 private:
     unsigned int id;
 public:
-    Shader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col);
+    Shader(string vertexShaderString, string fragmentShaderString, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col);
     unsigned int ID();
 };
 
 // Will take the source as argument when I get around to reading them from file
-Shader::Shader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col) {
+Shader::Shader(string vertexShaderString, string fragmentShaderString, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col) {
+    const char *vertexShaderSource = (const GLchar *)vertexShaderString.c_str();
+    const char *fragmentShaderSource = (const GLchar *)fragmentShaderString.c_str();
+
     // get previously bound shader to restore later
     GLint prevId;
     glGetIntegerv(GL_CURRENT_PROGRAM,&prevId);
@@ -473,14 +454,25 @@ int main(int argc, char** argv)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
+    std::filesystem::path p = "";
+
+     string vertexShaderSource = readFile(p / "assets" / "shaders" / "vertexShader.txt");
+     string fragmentShaderSource = readFile(p / "assets" / "shaders" / "fragmentShader.txt");
+     
 
     // Build the shaders for the two different teapots
-    Shader &redShader = Shader(glm::vec3(1.5f, 1.0f, 0.0f),  // translation
+    Shader &redShader = Shader(
+        vertexShaderSource,
+        fragmentShaderSource,
+        glm::vec3(1.5f, 1.0f, 0.0f),  // translation
         glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
         glm::vec3(1.0f, 2.0f, 1.0f),  // scale
         glm::vec3(1.0f, 0.0f, 0.0f)); // color
 
-    Shader &blueShader = Shader(glm::vec3(-1.5f, -1.0f, 0.0f),
+    Shader &blueShader = Shader(
+        vertexShaderSource,
+        fragmentShaderSource,
+        glm::vec3(-1.5f, -1.0f, 0.0f),
         glm::vec3(0.0f, 0.5f, 0.0f),
         glm::vec3(1.0f, 1.0f, 1.0f),
         glm::vec3(0.0f, 0.0f, 1.0f));
