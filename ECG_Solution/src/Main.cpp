@@ -126,8 +126,16 @@ void error_callback(int error, const char* description)
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
+    Camera &camera = ((WindowInfo*)glfwGetWindowUserPointer(window))->camera;
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+    else if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
+        camera.toggleWireframe();
+    }
+    else if (key == GLFW_KEY_F2 && action == GLFW_PRESS) {
+        camera.toggleBackfaceCulling();
+    }
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
@@ -261,7 +269,41 @@ int main(int argc, char** argv)
 
      string vertexShaderSource = readFile(p / "assets" / "shaders" / "vertexShader.txt");
      string fragmentShaderSource = readFile(p / "assets" / "shaders" / "fragmentShader.txt");
-     
+    
+
+    float vertices[] = {
+         0.5f,  0.5f, 0.0f,  // top right
+         0.5f, -0.5f, 0.0f,  // bottom right
+        -0.5f, -0.5f, 0.0f,  // bottom left
+        -0.5f,  0.5f, 0.0f   // top left 
+    };
+
+    unsigned int indices[] = {  // note that we start from 0!
+        0, 1, 3,   // first triangle
+        1, 2, 3    // second triangle
+    };  
+
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
+
+    unsigned int VAO;
+    glGenVertexArrays(1, &VAO);  
+    
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
+
+    // ..:: Initialization code :: ..
+    // 1. bind Vertex Array Object
+    glBindVertexArray(VAO);
+    // 2. copy our vertices array in a vertex buffer for OpenGL to use
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    // 3. copy our index array in a element buffer for OpenGL to use
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    // 4. then set the vertex attributes pointers
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);  
 
     // Build the shaders for the two different teapots
     Shader &redShader = Shader(
@@ -272,18 +314,18 @@ int main(int argc, char** argv)
         glm::vec3(1.0f, 2.0f, 1.0f),  // scale
         glm::vec3(1.0f, 0.0f, 0.0f)); // color
 
-    Shader &blueShader = Shader(
-        vertexShaderSource,
-        fragmentShaderSource,
-        glm::vec3(-1.5f, -1.0f, 0.0f),
-        glm::vec3(0.0f, 0.5f, 0.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-        glm::vec3(0.0f, 0.0f, 1.0f));
+//    Shader &blueShader = Shader(
+//        vertexShaderSource,
+//        fragmentShaderSource,
+//        glm::vec3(-1.5f, -1.0f, 0.0f),
+//        glm::vec3(0.0f, 0.5f, 0.0f),
+//        glm::vec3(1.0f, 1.0f, 1.0f),
+//        glm::vec3(0.0f, 0.0f, 1.0f));
 
 
     // location of the view-projection matrices in the two shaders
     int redProjLocation = glGetUniformLocation(redShader.ID(), "viewProj");
-    int blueProjLocation = glGetUniformLocation(blueShader.ID(), "viewProj");
+    // int blueProjLocation = glGetUniformLocation(blueShader.ID(), "viewProj");
     
 
     WindowInfo windowInfo = {
@@ -306,10 +348,12 @@ int main(int argc, char** argv)
 		glfwPollEvents();
 		BindShader useRed(redShader);
         glUniformMatrix4fv(redProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
-		drawTeapot();
-		BindShader useBlue(blueShader);
-	    glUniformMatrix4fv(blueProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
-		drawTeapot();
+		//drawTeapot();
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		// BindShader useBlue(blueShader);
+	    // glUniformMatrix4fv(blueProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
+		// drawTeapot();
 		glfwSwapBuffers(window);
 	}
 

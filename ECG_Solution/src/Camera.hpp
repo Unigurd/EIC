@@ -3,6 +3,8 @@
 #include "glm\matrix.hpp"
 #include <glm/gtc/type_ptr.hpp>
 #include "glm/ext.hpp"
+#include <GL\glew.h>
+#include <GLFW/glfw3.h>
 
 // The Camera class
 class Camera {
@@ -13,11 +15,14 @@ private:
     float rotationX, rotationY; // 1.0 is one full rotation
     glm::mat4 viewProj;
     void updateViewProj();
+    bool wireframe;
+    bool backfaceCulling;
 
 public:
     Camera(float fov, float height, float width, float zNear, float zFar);
-    Camera(float fov, float height, float width, float zNear, float zFar, glm::vec3 trans, glm::vec3 rot);
     glm::mat4 ViewProjMatrix();
     void translate(glm::vec3 trans);
     void rotate(glm::vec3 rot);
+    void toggleBackfaceCulling();
+    void toggleWireframe();
 };
