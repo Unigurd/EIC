@@ -271,16 +271,34 @@ int main(int argc, char** argv)
      string fragmentShaderSource = readFile(p / "assets" / "shaders" / "fragmentShader.txt");
     
 
+    float sheight = 2.0f;
+    float swidth = 1.0f;
+    float sdepth = 0.5f;
+
     float vertices[] = {
-         0.5f,  0.5f, 0.0f,  // top right
-         0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f   // top left 
+         -swidth/2,  sheight/2, sdepth/2,    // top left front
+         -swidth/2,  -sheight/2, sdepth/2,   // bottom left front
+         swidth/2,  sheight/2, sdepth/2,     // top right front
+         swidth/2,  -sheight/2, sdepth/2,    // bottom right front
+         swidth/2,  sheight/2, -sdepth/2,    // top right back
+         swidth/2,  -sheight/2, -sdepth/2,   // bottom right back
+         -swidth/2,  sheight/2, -sdepth/2,   // top left back
+         -swidth/2,  -sheight/2, -sdepth/2,  // bottom left back
     };
 
-    unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 3,   // first triangle
-        1, 2, 3    // second triangle
+    unsigned int indices[] = {
+        0, 1, 2,   // front
+        3, 2, 1,
+        2, 3, 4,   // right
+        5, 4, 3,
+        4, 5, 6,   // back
+        7, 6, 5,
+        6, 7, 0,   // left
+        1, 0, 7,
+        0, 2, 6,   // top
+        4, 6, 2,
+        1, 7, 3,
+        5, 3, 7
     };  
 
     unsigned int VBO;
@@ -311,7 +329,7 @@ int main(int argc, char** argv)
         fragmentShaderSource,
         glm::vec3(1.5f, 1.0f, 0.0f),  // translation
         glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
-        glm::vec3(1.0f, 2.0f, 1.0f),  // scale
+        glm::vec3(1.0f, 1.0f, 1.0f),  // scale
         glm::vec3(1.0f, 0.0f, 0.0f)); // color
 
 //    Shader &blueShader = Shader(
@@ -350,7 +368,7 @@ int main(int argc, char** argv)
         glUniformMatrix4fv(redProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
 		//drawTeapot();
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 		// BindShader useBlue(blueShader);
 	    // glUniformMatrix4fv(blueProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
 		// drawTeapot();
