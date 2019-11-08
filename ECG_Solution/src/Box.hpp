@@ -2,17 +2,11 @@
 
 #include <vector>
 #include "Shader.hpp"
+#include "Shape.hpp"
 
-class Box
-{
-private:
-    std::vector<float> vertices;
-    std::vector<unsigned int> indices;
-    unsigned int VAO;
-
+class Box : public Shape {
 public:
     Box(float width, float height, float depth);
     ~Box();
-    void Draw();
 };
 
