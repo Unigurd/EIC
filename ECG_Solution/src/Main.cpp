@@ -18,7 +18,8 @@
 #include "Cursor.hpp"
 #include "Shader.hpp"
 #include "WindowInfo.hpp"
-#include "Box.hpp"
+#include "Shapes/Box.hpp"
+#include "Shapes/Cylinder.hpp"
 
 /* --------------------------------------------- */
 // Callbacks
@@ -272,63 +273,6 @@ int main(int argc, char** argv)
      string fragmentShaderSource = readFile(p / "assets" / "shaders" / "fragmentShader.txt");
     
 
-    // float sheight = 2.0f;
-    // float swidth = 1.0f;
-    // float sdepth = 0.5f;
-
-    // float vs[] = {
-    //      -swidth/2,  sheight/2, sdepth/2,    // top left front
-    //      -swidth/2,  -sheight/2, sdepth/2,   // bottom left front
-    //      swidth/2,  sheight/2, sdepth/2,     // top right front
-    //      swidth/2,  -sheight/2, sdepth/2,    // bottom right front
-    //      swidth/2,  sheight/2, -sdepth/2,    // top right back
-    //      swidth/2,  -sheight/2, -sdepth/2,   // bottom right back
-    //      -swidth/2,  sheight/2, -sdepth/2,   // top left back
-    //      -swidth/2,  -sheight/2, -sdepth/2,  // bottom left back
-    // };
-
-    // unsigned int is[] = {
-    //     0, 1, 2,   // front
-    //     3, 2, 1,
-    //     2, 3, 4,   // right
-    //     5, 4, 3,
-    //     4, 5, 6,   // back
-    //     7, 6, 5,
-    //     6, 7, 0,   // left
-    //     1, 0, 7,
-    //     0, 2, 6,   // top
-    //     4, 6, 2,
-    //     1, 7, 3,
-    //     5, 3, 7
-    // };  
-
-    // std::vector vertices = std::vector(vs, std::end(vs));
-    // std::vector indices = std::vector(is, std::end(is));
-
-    // // for (int a = 0; a < 36; a++) {
-    // //         std::cout << ((unsigned int *)static_cast<void*>(indices.data()))[a] << std::endl;
-    // // }
-
-    // std::cout << vertices.size() << "    " << indices.size() << std::endl;
-
-    // unsigned int VAO, VBO, EBO;
-    // glGenVertexArrays(1, &VAO);  
-    // glGenBuffers(1, &VBO); // check for errors
-    // glGenBuffers(1, &EBO);
-
-    // // ..:: Initialization code :: ..
-    // // 1. bind Vertex Array Object
-    // glBindVertexArray(VAO);
-    // // 2. copy our vertices array in a vertex buffer for OpenGL to use
-    // glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
-    // // 3. copy our index array in a element buffer for OpenGL to use
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-    // // 4. then set the vertex attributes pointers
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    // glEnableVertexAttribArray(0);  
-
     Shader &redShader = Shader(
         vertexShaderSource,
         fragmentShaderSource,
@@ -349,7 +293,7 @@ int main(int argc, char** argv)
 
     Camera& camera = windowInfo.camera;
     Cursor& cursor = windowInfo.cursor;
-    Box box = Box(2.0f, 1.0f, 1.5f);
+    Cylinder cylinder = Cylinder(2.0f, 1.0f, 10);
 	
     glm::vec3 trans = glm::vec3(0.0f, 0.0f, 6.0f);
     glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -361,10 +305,7 @@ int main(int argc, char** argv)
 		glfwPollEvents();
 		BindShader useRed(redShader);
         glUniformMatrix4fv(redProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
-        //glBindVertexArray(VAO);
-        //glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-        //glBindVertexArray(0); // find previous bound and restore it.
-        box.Draw();
+        cylinder.Draw();
 
 		glfwSwapBuffers(window);
 	}

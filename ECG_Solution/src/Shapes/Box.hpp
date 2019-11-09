@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-#include "Shader.hpp"
 #include "Shape.hpp"
 
 class Box : public Shape {
