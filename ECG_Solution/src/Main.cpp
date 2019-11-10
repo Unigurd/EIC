@@ -20,6 +20,7 @@
 #include "WindowInfo.hpp"
 #include "Shapes/Box.hpp"
 #include "Shapes/Cylinder.hpp"
+#include "Shapes/Sphere.hpp"
 
 /* --------------------------------------------- */
 // Callbacks
@@ -293,8 +294,10 @@ int main(int argc, char** argv)
 
     Camera& camera = windowInfo.camera;
     Cursor& cursor = windowInfo.cursor;
-    Cylinder cylinder = Cylinder(2.0f, 1.0f, 10);
-	
+    Box box = Box(2.0f, 1.5f, 1.0f);
+    Cylinder cylinder = Cylinder(1.0f, 0.5f, 20);
+    Sphere sphere = Sphere(128, 64, 0.5f);
+
     glm::vec3 trans = glm::vec3(0.0f, 0.0f, 6.0f);
     glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
 
@@ -305,7 +308,9 @@ int main(int argc, char** argv)
 		glfwPollEvents();
 		BindShader useRed(redShader);
         glUniformMatrix4fv(redProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
-        cylinder.Draw();
+        //box.Draw();
+        // sphere.Draw();
+        sphere.Draw();
 
 		glfwSwapBuffers(window);
 	}

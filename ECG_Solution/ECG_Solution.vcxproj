@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClInclude Include="src\Shapes\Sphere.hpp" />
     <ClInclude Include="src\Shapes\Cylinder.hpp" />
     <ClInclude Include="src\Shapes\Shape.hpp" />
     <ClInclude Include="src\Shapes\Box.hpp" />
@@ -9,6 +10,7 @@
     <ClInclude Include="src\Cursor.hpp" />
     <ClInclude Include="src\Camera.hpp" />
     <ClInclude Include="src\INIReader.h" />
+    <ClCompile Include="src\Shapes\Sphere.cpp" />
     <ClCompile Include="src\Shapes\Cylinder.cpp" />
     <ClCompile Include="src\Shapes\Shape.cpp" />
     <ClCompile Include="src\Shapes\Box.cpp" />

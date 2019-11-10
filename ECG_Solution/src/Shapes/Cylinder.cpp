@@ -49,6 +49,12 @@ Cylinder::Cylinder(float height, float radius, unsigned int sides) {
 
     }
 
+   // std::vector<float>::iterator i;
+   //  for (i = vertices.begin(); i != vertices.end(); ++i) {
+   //      std::cout << *i << std::endl;
+   //  }
+
+
     initVAO();
 }
 
