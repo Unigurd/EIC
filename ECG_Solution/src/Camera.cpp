@@ -1,8 +1,8 @@
 #include "Camera.hpp"
 
 
-Camera::Camera(float fov, float height, float width, float zNear, float zFar) {
-    float aspect = width / height;
+Camera::Camera(float fov, int height, int width, float zNear, float zFar) {
+    float aspect = (float)width / (float)height;
     projection = glm::perspective(fov, aspect, zNear, zFar); // Not changed again since it is constant.
     translation = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 6.0f));
     rotationX = 1.0f; rotationY = 1.0f;
@@ -55,3 +55,5 @@ void Camera::toggleWireframe() {
     if (wireframe = wireframe != 1) { glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); }
     else { glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); }
 }
+
+

@@ -196,9 +196,60 @@ int main(int argc, char** argv)
     int height = reader.GetInteger("window", "height", 80);
     std::string tmp_window_title = reader.Get("window", "title", "Title not loaded");
     const char * window_title = tmp_window_title.c_str();
-    double fovy = reader.GetReal("camera", "fov", 360.0);
-    double zNear = reader.GetReal("camera", "near", 0.5);
-    double zFar = reader.GetReal("camera", "far", 50.0);
+    float fovy = (float)reader.GetReal("camera", "fov", 360.0);
+    float zNear = (float)reader.GetReal("camera", "near", 0.5);
+    float zFar = (float)reader.GetReal("camera", "far", 50.0);
+
+    // box
+    float boxWidth = (float)reader.GetReal("box", "width", 50.0);
+    float boxHeight = (float)reader.GetReal("box", "height", 50.0);
+    float boxDepth = (float)reader.GetReal("box", "depth", 50.0);
+    float boxTransX = (float)reader.GetReal("box", "transX", 50.0);
+    float boxTransY = (float)reader.GetReal("box", "transY", 50.0);
+    float boxTransZ = (float)reader.GetReal("box", "transZ", 50.0);
+    float boxRotX = (float)reader.GetReal("box", "rotX", 50.0);
+    float boxRotY = (float)reader.GetReal("box", "rotY", 50.0);
+    float boxRotZ = (float)reader.GetReal("box", "rotZ", 50.0);
+    float boxScaleX = (float)reader.GetReal("box", "scaleX", 50.0);
+    float boxScaleY = (float)reader.GetReal("box", "scaleY", 50.0);
+    float boxScaleZ = (float)reader.GetReal("box", "scaleZ", 50.0);
+    float boxRed = (float)reader.GetReal("box", "red", 1.0);
+    float boxGreen = (float)reader.GetReal("box", "green", 1.0);
+    float boxBlue = (float)reader.GetReal("box", "blue", 1.0);
+
+    // cylinder
+    float cylinderHeight = (float)reader.GetReal("cylinder", "height", 50.0);
+    float cylinderRadius = (float)reader.GetReal("cylinder", "radius", 50.0);
+    unsigned int cylinderSides = reader.GetInteger("cylinder", "sides", 50);
+    float cylinderTransX = (float)reader.GetReal("cylinder", "transX", 50.0);
+    float cylinderTransY = (float)reader.GetReal("cylinder", "transY", 50.0);
+    float cylinderTransZ = (float)reader.GetReal("cylinder", "transZ", 50.0);
+    float cylinderRotX = (float)reader.GetReal("cylinder", "rotX", 50.0);
+    float cylinderRotY = (float)reader.GetReal("cylinder", "rotY", 50.0);
+    float cylinderRotZ = (float)reader.GetReal("cylinder", "rotZ", 50.0);
+    float cylinderScaleX = (float)reader.GetReal("cylinder", "scaleX", 50.0);
+    float cylinderScaleY = (float)reader.GetReal("cylinder", "scaleY", 50.0);
+    float cylinderScaleZ = (float)reader.GetReal("cylinder", "scaleZ", 50.0);
+    float cylinderRed = (float)reader.GetReal("cylinder", "red", 1.0);
+    float cylinderGreen = (float)reader.GetReal("cylinder", "green", 1.0);
+    float cylinderBlue = (float)reader.GetReal("cylinder", "blue", 1.0);
+
+    // sphere
+    unsigned int sphereLongSegments = reader.GetInteger("sphere", "longSegments", 50);
+    unsigned int sphereLatSegments = reader.GetInteger("sphere", "latSegments", 50);
+    float sphereRadius = (float)reader.GetReal("sphere", "radius", 50.0);
+    float sphereTransX = (float)reader.GetReal("sphere", "transX", 50.0);
+    float sphereTransY = (float)reader.GetReal("sphere", "transY", 50.0);
+    float sphereTransZ = (float)reader.GetReal("sphere", "transZ", 50.0);
+    float sphereRotX = (float)reader.GetReal("sphere", "rotX", 50.0);
+    float sphereRotY = (float)reader.GetReal("sphere", "rotY", 50.0);
+    float sphereRotZ = (float)reader.GetReal("sphere", "rotZ", 50.0);
+    float sphereScaleX = (float)reader.GetReal("sphere", "scaleX", 50.0);
+    float sphereScaleY = (float)reader.GetReal("sphere", "scaleY", 50.0);
+    float sphereScaleZ = (float)reader.GetReal("sphere", "scaleZ", 50.0);
+    float sphereRed = (float)reader.GetReal("sphere", "red", 1.0);
+    float sphereGreen = (float)reader.GetReal("sphere", "green", 1.0);
+    float sphereBlue = (float)reader.GetReal("sphere", "blue", 1.0);
 
 
     /* --------------------------------------------- */
@@ -273,45 +324,44 @@ int main(int argc, char** argv)
      string vertexShaderSource = readFile(p / "assets" / "shaders" / "vertexShader.txt");
      string fragmentShaderSource = readFile(p / "assets" / "shaders" / "fragmentShader.txt");
     
-
     Shader &boxShader = Shader(
         vertexShaderSource,
         fragmentShaderSource,
-        glm::vec3(0.0f, 0.0f, 0.0f),  // translation
-        glm::vec3(0.0f, 0.125f, 0.0f),  // rotation
-        glm::vec3(1.0f, 1.0f, 1.0f),  // scale
-        glm::vec3(0.0f, 0.0f, 1.0f)); // color
+        glm::vec3(boxTransX, boxTransY, boxTransZ),  // translation
+        glm::vec3(boxRotX, boxRotY, boxRotZ),  // rotation
+        glm::vec3(boxScaleX, boxScaleY, boxScaleZ),  // scale
+        glm::vec3(boxRed, boxGreen, boxBlue)); // color
 
     Shader &cylinderShader = Shader(
         vertexShaderSource,
         fragmentShaderSource,
-        glm::vec3(-2.0f, 0.0f, 0.0f),  // translation
-        glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
-        glm::vec3(1.0f, 1.0f, 1.0f),  // scale
-        glm::vec3(0.0f, 1.0f, 0.0f)); // color
+        glm::vec3(cylinderTransX, cylinderTransY, cylinderTransZ),  // translation
+        glm::vec3(cylinderRotX, cylinderRotY, cylinderRotZ),  // rotation
+        glm::vec3(cylinderScaleX, cylinderScaleY, cylinderScaleZ),  // scale
+        glm::vec3(cylinderRed, cylinderGreen, cylinderBlue)); // color
 
     Shader &sphereShader = Shader(
         vertexShaderSource,
         fragmentShaderSource,
-        glm::vec3(2.0f, 0.0f, 0.0f),  // translation
-        glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
-        glm::vec3(1.0f, 1.7f, 1.0f),  // scale
-        glm::vec3(1.0f, 0.0f, 0.0f)); // color
+        glm::vec3(sphereTransX, sphereTransY, sphereTransZ),  // translation
+        glm::vec3(sphereRotX, sphereRotY, sphereRotZ),  // rotation
+        glm::vec3(sphereScaleX, sphereScaleY, sphereScaleZ),  // scale
+        glm::vec3(sphereRed, sphereGreen, sphereBlue)); // color
+
+
+    Box box = Box(boxWidth, boxHeight, boxDepth);
+    Cylinder cylinder = Cylinder(cylinderHeight, cylinderRadius, cylinderSides);
+    Sphere sphere = Sphere(sphereLongSegments, sphereLatSegments, sphereRadius);
 
     WindowInfo windowInfo = {
         Camera(fovy, height, width, zNear, zFar),
         Cursor()
     };
-    glfwSetWindowUserPointer(window, (void*)&windowInfo);
 
+    glfwSetWindowUserPointer(window, (void*)&windowInfo);
     Camera& camera = windowInfo.camera;
     Cursor& cursor = windowInfo.cursor;
-    Box box = Box(1.2f, 2.0f, 1.2f);
-    Cylinder cylinder = Cylinder(2.0f, 0.6f, 16);
-    Sphere sphere = Sphere(16, 8, 0.6f);
 
-    glm::vec3 trans = glm::vec3(0.0f, 0.0f, 6.0f);
-    glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
 
 	glClearColor(1, 1, 1, 1);
 	while (!glfwWindowShouldClose(window))
