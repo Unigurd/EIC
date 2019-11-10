@@ -297,10 +297,6 @@ int main(int argc, char** argv)
         glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
         glm::vec3(1.0f, 1.7f, 1.0f),  // scale
         glm::vec3(1.0f, 0.0f, 0.0f)); // color
-    // location of the view-projection matrices in the two shaders
-    int boxProjLocation = glGetUniformLocation(boxShader.ID(), "viewProj");
-    int cylinderProjLocation = glGetUniformLocation(cylinderShader.ID(), "viewProj");
-    int sphereProjLocation = glGetUniformLocation(sphereShader.ID(), "viewProj");
 
     WindowInfo windowInfo = {
         Camera(fovy, height, width, zNear, zFar),
@@ -322,14 +318,11 @@ int main(int argc, char** argv)
 	{	
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glfwPollEvents();
-		BindShader useBox(boxShader);
-        glUniformMatrix4fv(boxProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
+		BindShader useBox(boxShader, camera.ViewProjMatrix());
         box.Draw();
-		BindShader useCylinder(cylinderShader);
-        glUniformMatrix4fv(cylinderProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
+		BindShader useCylinder(cylinderShader, camera.ViewProjMatrix());
         cylinder.Draw();
-		BindShader useSphere(sphereShader);
-        glUniformMatrix4fv(sphereProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
+		BindShader useSphere(sphereShader, camera.ViewProjMatrix());
         sphere.Draw();
 
 		glfwSwapBuffers(window);

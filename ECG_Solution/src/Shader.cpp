@@ -27,10 +27,10 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
     glCompileShader(fragmentShader);
     
     // Build the shader program
-    id = glCreateProgram();
-    glAttachShader(id, vertexShader);
-    glAttachShader(id, fragmentShader);
-    glLinkProgram(id);
+    shaderID = glCreateProgram();
+    glAttachShader(shaderID, vertexShader);
+    glAttachShader(shaderID, fragmentShader);
+    glLinkProgram(shaderID);
     
     // The shaders have been linked and can now be deleted
     glDeleteShader(vertexShader);
@@ -46,28 +46,29 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
 	glm::mat4 model = translate * rotation * scale;
 
     // Set the model and color uniforms in the shader program
-    glUseProgram(id);
-	int modelLocation = glGetUniformLocation(id, "model");
+    glUseProgram(shaderID);
+	int modelLocation = glGetUniformLocation(shaderID, "model");
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
-	int colorLocation = glGetUniformLocation(id, "color");
+	int colorLocation = glGetUniformLocation(shaderID, "color");
 	glUniform3fv(colorLocation, 1, glm::value_ptr(col));
+    viewProjLocation = glGetUniformLocation(shaderID, "viewProj");
 
     // restore previously bound shader
     glUseProgram(prevId);
 }
 
-unsigned int Shader::ID() { return id; }
+unsigned int Shader::ID() { return shaderID; }
+int Shader::ViewProjLocation() { return viewProjLocation; }
 
 
 
-
-
-BindShader::BindShader(Shader &shader) {
+BindShader::BindShader(Shader &shader, glm::mat4 viewProjMatrix) {
     // get previously bound shader to restore later
     glGetIntegerv(GL_CURRENT_PROGRAM,&prevId);
 
     // bind new shader
     glUseProgram(shader.ID());
+    glUniformMatrix4fv(shader.ViewProjLocation(), 1, GL_FALSE, glm::value_ptr(viewProjMatrix));
 }
 
 BindShader::~BindShader() {
