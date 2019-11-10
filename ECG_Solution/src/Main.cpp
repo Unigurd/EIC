@@ -274,17 +274,33 @@ int main(int argc, char** argv)
      string fragmentShaderSource = readFile(p / "assets" / "shaders" / "fragmentShader.txt");
     
 
-    Shader &redShader = Shader(
+    Shader &boxShader = Shader(
         vertexShaderSource,
         fragmentShaderSource,
-        glm::vec3(1.5f, 1.0f, 0.0f),  // translation
+        glm::vec3(0.0f, 0.0f, 0.0f),  // translation
+        glm::vec3(0.0f, 0.125f, 0.0f),  // rotation
+        glm::vec3(1.0f, 1.0f, 1.0f),  // scale
+        glm::vec3(0.0f, 0.0f, 1.0f)); // color
+
+    Shader &cylinderShader = Shader(
+        vertexShaderSource,
+        fragmentShaderSource,
+        glm::vec3(-2.0f, 0.0f, 0.0f),  // translation
         glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
         glm::vec3(1.0f, 1.0f, 1.0f),  // scale
+        glm::vec3(0.0f, 1.0f, 0.0f)); // color
+
+    Shader &sphereShader = Shader(
+        vertexShaderSource,
+        fragmentShaderSource,
+        glm::vec3(2.0f, 0.0f, 0.0f),  // translation
+        glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
+        glm::vec3(1.0f, 1.7f, 1.0f),  // scale
         glm::vec3(1.0f, 0.0f, 0.0f)); // color
-
-
     // location of the view-projection matrices in the two shaders
-    int redProjLocation = glGetUniformLocation(redShader.ID(), "viewProj");
+    int boxProjLocation = glGetUniformLocation(boxShader.ID(), "viewProj");
+    int cylinderProjLocation = glGetUniformLocation(cylinderShader.ID(), "viewProj");
+    int sphereProjLocation = glGetUniformLocation(sphereShader.ID(), "viewProj");
 
     WindowInfo windowInfo = {
         Camera(fovy, height, width, zNear, zFar),
@@ -294,9 +310,9 @@ int main(int argc, char** argv)
 
     Camera& camera = windowInfo.camera;
     Cursor& cursor = windowInfo.cursor;
-    Box box = Box(2.0f, 1.5f, 1.0f);
-    Cylinder cylinder = Cylinder(1.0f, 0.5f, 20);
-    Sphere sphere = Sphere(128, 64, 0.5f);
+    Box box = Box(1.2f, 2.0f, 1.2f);
+    Cylinder cylinder = Cylinder(2.0f, 0.6f, 16);
+    Sphere sphere = Sphere(16, 8, 0.6f);
 
     glm::vec3 trans = glm::vec3(0.0f, 0.0f, 6.0f);
     glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -306,10 +322,14 @@ int main(int argc, char** argv)
 	{	
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glfwPollEvents();
-		BindShader useRed(redShader);
-        glUniformMatrix4fv(redProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
-        //box.Draw();
-        // sphere.Draw();
+		BindShader useBox(boxShader);
+        glUniformMatrix4fv(boxProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
+        box.Draw();
+		BindShader useCylinder(cylinderShader);
+        glUniformMatrix4fv(cylinderProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
+        cylinder.Draw();
+		BindShader useSphere(sphereShader);
+        glUniformMatrix4fv(sphereProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
         sphere.Draw();
 
 		glfwSwapBuffers(window);
