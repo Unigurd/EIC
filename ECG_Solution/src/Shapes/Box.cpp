@@ -5,6 +5,7 @@
 #include <iostream>
 
 Box::Box(float width, float height, float depth) {
+    // The corners of the box
     float vs[] = {
          -width / 2,  height / 2, depth / 2,    // top left front
          -width / 2,  -height / 2, depth / 2,   // bottom left front
@@ -16,6 +17,7 @@ Box::Box(float width, float height, float depth) {
          -width / 2,  -height / 2, -depth / 2,  // bottom left back
     };
 
+    // The sides of the box as triangles
     unsigned int is[] = {
         0, 1, 2,   // front
         3, 2, 1,
@@ -30,7 +32,9 @@ Box::Box(float width, float height, float depth) {
         1, 7, 3,
         5, 3, 7
     };
-
+    
+    // Add corners and triangles to the shape.
+    // It is done this way because the vertices and faces are generated dynamically for other shapes
     vertices = std::vector(vs, std::end(vs));
     indices = std::vector(is, std::end(is));
 

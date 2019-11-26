@@ -127,15 +127,22 @@ void error_callback(int error, const char* description)
 	fprintf(stderr, "Error: %s\n", description);
 }
 
+// Handles key presses
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     Camera &camera = ((WindowInfo*)glfwGetWindowUserPointer(window))->camera;
+
+    // Close window upon ESC press
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
+
+    // Toggle wireframe view upon F1 press
     else if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
         camera.toggleWireframe();
     }
+
+    // Toggle backface culling upon F2 press
     else if (key == GLFW_KEY_F2 && action == GLFW_PRESS) {
         camera.toggleBackfaceCulling();
     }
@@ -144,6 +151,8 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
     Cursor &cursor = ((WindowInfo*)glfwGetWindowUserPointer(window))->cursor;
+
+    // Update the cursor's .pressed according to whether the left mouse button is pressed or not
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         cursor.isPressed = true;
     }
@@ -156,9 +165,11 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 {
     Cursor &cursor = ((WindowInfo*)glfwGetWindowUserPointer(window))->cursor;
     Camera &camera = ((WindowInfo*)glfwGetWindowUserPointer(window))->camera;
+
+    // Update the position of the cursor
     cursor.MoveTo (xpos, ypos);
     if (cursor.isPressed) {
-        // I think I just divide by 1000 to get the rotation speed right. Might not be the right place to do that.
+        // I divide by 1000 to get the rotation speed right. Might not be the right place to do that.
         camera.rotate(glm::vec3(cursor.deltaY / 1000.0, cursor.deltaX / 1000.0 , 0.0));
     }
 }
@@ -302,9 +313,7 @@ int main(int argc, char** argv)
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 #endif
 
-
         glfwSwapInterval(1);
-
 
         if (!initFramework()) {
             EXIT_WITH_ERROR("Failed to init framework")
@@ -319,11 +328,12 @@ int main(int argc, char** argv)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
+    // Read shaders
     std::filesystem::path p = "";
-
-     string vertexShaderSource = readFile(p / "assets" / "shaders" / "vertexShader.txt");
-     string fragmentShaderSource = readFile(p / "assets" / "shaders" / "fragmentShader.txt");
+    string vertexShaderSource = readFile(p / "assets" / "shaders" / "vertexShader.txt");
+    string fragmentShaderSource = readFile(p / "assets" / "shaders" / "fragmentShader.txt");
     
+    // Generate shaders
     Shader &boxShader = Shader(
         vertexShaderSource,
         fragmentShaderSource,
@@ -349,25 +359,31 @@ int main(int argc, char** argv)
         glm::vec3(sphereRed, sphereGreen, sphereBlue)); // color
 
 
+    // Generate Shapes
     Box box = Box(boxWidth, boxHeight, boxDepth);
     Cylinder cylinder = Cylinder(cylinderHeight, cylinderRadius, cylinderSides);
     Sphere sphere = Sphere(sphereLongSegments, sphereLatSegments, sphereRadius);
 
+    // Create Camera and cursor
     WindowInfo windowInfo = {
         Camera(fovy, height, width, zNear, zFar),
         Cursor()
     };
 
+    // window has a pointer to windowInfo in order to use the camera and cursor in the callbacks
     glfwSetWindowUserPointer(window, (void*)&windowInfo);
     Camera& camera = windowInfo.camera;
     Cursor& cursor = windowInfo.cursor;
 
-
 	glClearColor(1, 1, 1, 1);
+    // Render loop
 	while (!glfwWindowShouldClose(window))
 	{	
+        // Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // poll events
 		glfwPollEvents();
+        // Bind the shader of each shape and draw it
 		BindShader useBox(boxShader, camera.ViewProjMatrix());
         box.Draw();
 		BindShader useCylinder(cylinderShader, camera.ViewProjMatrix());
@@ -375,6 +391,7 @@ int main(int argc, char** argv)
 		BindShader useSphere(sphereShader, camera.ViewProjMatrix());
         sphere.Draw();
 
+        // swap buffers
 		glfwSwapBuffers(window);
 	}
 

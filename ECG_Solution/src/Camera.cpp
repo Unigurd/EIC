@@ -13,10 +13,10 @@ Camera::Camera(float fov, int height, int width, float zNear, float zFar) {
 }
 
 
+// Generate a new view-projection matrix with the updated rotation
 void Camera::updateViewProj(){
     glm::mat4 rotMatX = glm::rotate(glm::mat4(1.0f), glm::radians(360 * rotationX), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 rotMatY = glm::rotate(glm::mat4(1.0f), glm::radians(360 * rotationY), glm::vec3(0.0f, 1.0f, 0.0f));
-
     glm::mat4 view = glm::inverse(rotMatY * rotMatX * translation);
     viewProj = projection * view;
 }
@@ -26,8 +26,10 @@ void Camera::translate(glm::vec3 trans) {
     updateViewProj();
 }
 
+// Update the rotation information
 void Camera::rotate(glm::vec3 rot) {
     rotationX += rot[0]; rotationY += rot[1];
+
     // Make sure vertical rotation doesn't exceed +- 90 degrees
     float gap = 0.001f;
     if (rotationX >= 1.25f) {
@@ -38,6 +40,7 @@ void Camera::rotate(glm::vec3 rot) {
         rotationX = 0.75f + gap;
     }
 
+    // Lastly update the view-projection matrix
     updateViewProj();
  }
 

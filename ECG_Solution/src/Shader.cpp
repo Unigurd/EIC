@@ -71,6 +71,7 @@ BindShader::BindShader(Shader &shader, glm::mat4 viewProjMatrix) {
     glUniformMatrix4fv(shader.ViewProjLocation(), 1, GL_FALSE, glm::value_ptr(viewProjMatrix));
 }
 
+// Restore previously used program when binding goes out of scope
 BindShader::~BindShader() {
     glUseProgram(prevId);
 }

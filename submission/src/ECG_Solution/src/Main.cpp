@@ -10,199 +10,17 @@
 #include <GLFW/glfw3.h>
 #include "Utils.h"
 #include "glm\matrix.hpp"
-#include <glm/gtc/type_ptr.hpp>
 #include "glm/ext.hpp"
-#include <fstream>
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
-#include <vector>
-
-
-//The GLSL source for the two kinds of shaders
-// Sorry, I didn't have time to put these in files.
-// I did this kinda last minute.. ;)
-const char* vertexShaderSource =
-"#version 430 core\n"
-"layout (location = 0) in vec3 aPos;\n"
-"uniform mat4 model;\n"
-"uniform mat4 viewProj;\n"
-
-"void main()\n"
-"{\n"
-"    gl_Position = viewProj * model * vec4(aPos,1);\n"
-"}\n";
-
-const char* fragmentShaderSource =
-"#version 430 core\n"
-"uniform vec3 color;\n"
-"out vec4 FragColor;\n"
-"\n"
-"void main()\n"
-"{\n"
-"    FragColor = vec4(color, 1.0f);\n"
-"}\n";
-
-/* --------------------------------------------- */
-// Classes
-/* --------------------------------------------- */
-
-// The Camera class
-// Will be moved into it's own file
-class Camera {
-private:
-    glm::mat4 projection; // This is constant
-    glm::mat4 translation;
-    float rotationX, rotationY; // 1.0 is one full rotation
-    glm::mat4 viewProj;
-
-public:
-    Camera(float fov, float height, float width, float zNear, float zFar);
-    Camera(float fov, float height, float width, float zNear, float zFar, glm::vec3 trans, glm::vec3 rot);
-    glm::mat4 ViewProjMatrix();
-    void Set(glm::vec3 trans, glm::vec3 rot);
-    void translate(glm::vec3 trans);
-    void rotate(glm::vec3 rot);
-};
-
-Camera::Camera(float fov, float height, float width, float zNear, float zFar) {
-    float aspect = width / height;
-    projection = glm::perspective(fov, aspect, zNear, zFar); // Not changed again since it is constant.
-    glm::vec3 trans = glm::vec3(0.0f, 0.0f, 6.0f);
-    glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
-    Set(trans, rot);
-}
-
-Camera::Camera(float fov, float height, float width, float zNear, float zFar, glm::vec3 trans, glm::vec3 rot) {
-    float aspect = width / height;
-    projection = glm::perspective(fov, aspect, zNear, zFar); // Not changed again since it is constant.
-    Set(trans, rot);
-}
-
-// Both Set, translate and rotate methods are a mess
-// because I hodge-podged the arcball camera together last minute.
-// Will be cleaned up next time, I promise (y)
-
-// Sets camera position and rotation.
-// Will possibly be made private.
-void Camera::Set(glm::vec3 trans, glm::vec3 rot){
-    translation = glm::translate(glm::mat4(1.0f), trans);
-
-    rotationX = rot[0];
-    rotationY = rot[1];
-
-    glm::mat4 rotMatX = glm::rotate(glm::mat4(1.0f), glm::radians(rotationX), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 rotMatY = glm::rotate(glm::mat4(1.0f), glm::radians(rotationY), glm::vec3(0.0f, 1.0f, 0.0f));
-
-    glm::mat4 view = glm::inverse(rotMatY * translation);
-    viewProj = projection * rotMatX * view;
-}
-
-// Translates the camera
-// Will be refactored to not call rotate, but instead something else.
-// possibly Set. Probably Set.
-void Camera::translate(glm::vec3 trans) {
-    translation = glm::translate(translation, trans);
-    rotate(glm::vec3(0.0, 0.0, 0.0));
-}
-void Camera::rotate(glm::vec3 rot) {
-
-    rotationX += fmod(rot[0],1.0); rotationY += fmod(rot[1],1);
-    // Make sure vertical rotation doesn't exceed +- 90 degrees
-    float gap = 0.01;
-    if (rotationX >= 1.25) {
-        rotationX = 1.25 - gap;
-    }
-
-    if (rotationX <= 0.75) {
-        rotationX = 0.75 + gap;
-    }
-
-    glm::mat4 rotMatX = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rotationX), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 rotMatY = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rotationY), glm::vec3(0.0f, 1.0f, 0.0f));
-    // RotationZ is not used for arcball
-    // Kept around because "what if?"
-    // glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[2]), glm::vec3(0.0f, 0.0f, 1.0f));
-
-    glm::mat4 view = glm::inverse(rotMatY * translation);
-    // this weird stuff with translation is to get vertical rotation to be around the right point, i.e. (0,0,0)
-    // Will be refactored into more variables for readability
-    viewProj = projection * glm::inverse(translation) * rotMatX * translation * view;
- }
-
-// Returns the ViewProjMatrix for use in the main loop
-glm::mat4 Camera::ViewProjMatrix(){
-    return viewProj;
-}
-
-// Cursor class to keep track of when the mouse is pressed, and how much it has moved since last checked
-// Will also be put into own file
-class Cursor {
-private:
-    double xpos, ypos;
-public:
-    Cursor();
-    bool isPressed;
-    double deltaX, deltaY;
-    void MoveTo(double x, double y);
-};
-
-Cursor::Cursor() { isPressed = false; }
-
-void Cursor::MoveTo(double x, double y) {
-    deltaX = xpos - x;
-    deltaY = y - ypos; // Changing order of subtraction is a quick fix to get rotation right
-    xpos = x; ypos = y;
-}
-
-// To be set as WindowUserPointer or whatever it's called
-// so camera and cursor can be passed to the callbacks
-struct WindowInfo {
-    Camera camera;
-    Cursor cursor;
-};
-
-// Will be refactored into a shader class when time permits
-unsigned int buildShader(glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col) {
-    // Create the vertex shader
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-
-    // Create the fragment shader
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-    
-    // Build the shader program
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    
-    // The shaders have been linked and can now be deleted
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    // Build the model matrix from the arguments
-    glm::mat4 translate = glm::translate(glm::mat4(1.0f), pos);
-    glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[0]), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[1]), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[2]), glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::mat4 rotation = rotationZ * rotationY * rotationX;
-    glm::mat4 scale = glm::scale(glm::mat4(1.0f), sca);
-	glm::mat4 model = translate * rotation * scale;
-
-    // Set the model and color uniforms in the shader program
-    glUseProgram(shaderProgram);
-	int modelLocation = glGetUniformLocation(shaderProgram, "model");
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
-	int colorLocation = glGetUniformLocation(shaderProgram, "color");
-	glUniform3fv(colorLocation, 1, glm::value_ptr(col));
-
-	return shaderProgram;
-}
+#include <filesystem>
+#include "Camera.hpp"
+#include "Cursor.hpp"
+#include "Shader.hpp"
+#include "WindowInfo.hpp"
+#include "Shapes/Box.hpp"
+#include "Shapes/Cylinder.hpp"
+#include "Shapes/Sphere.hpp"
 
 /* --------------------------------------------- */
 // Callbacks
@@ -309,15 +127,32 @@ void error_callback(int error, const char* description)
 	fprintf(stderr, "Error: %s\n", description);
 }
 
+// Handles key presses
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
+    Camera &camera = ((WindowInfo*)glfwGetWindowUserPointer(window))->camera;
+
+    // Close window upon ESC press
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+
+    // Toggle wireframe view upon F1 press
+    else if (key == GLFW_KEY_F1 && action == GLFW_PRESS) {
+        camera.toggleWireframe();
+    }
+
+    // Toggle backface culling upon F2 press
+    else if (key == GLFW_KEY_F2 && action == GLFW_PRESS) {
+        camera.toggleBackfaceCulling();
+    }
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
     Cursor &cursor = ((WindowInfo*)glfwGetWindowUserPointer(window))->cursor;
+
+    // Update the cursor's .pressed according to whether the left mouse button is pressed or not
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         cursor.isPressed = true;
     }
@@ -330,9 +165,11 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
 {
     Cursor &cursor = ((WindowInfo*)glfwGetWindowUserPointer(window))->cursor;
     Camera &camera = ((WindowInfo*)glfwGetWindowUserPointer(window))->camera;
+
+    // Update the position of the cursor
     cursor.MoveTo (xpos, ypos);
     if (cursor.isPressed) {
-        // I think I just divide by 1000 to get the rotation speed right. Might not be the right place to do that.
+        // I divide by 1000 to get the rotation speed right. Might not be the right place to do that.
         camera.rotate(glm::vec3(cursor.deltaY / 1000.0, cursor.deltaX / 1000.0 , 0.0));
     }
 }
@@ -370,9 +207,60 @@ int main(int argc, char** argv)
     int height = reader.GetInteger("window", "height", 80);
     std::string tmp_window_title = reader.Get("window", "title", "Title not loaded");
     const char * window_title = tmp_window_title.c_str();
-    double fovy = reader.GetReal("camera", "fov", 360.0);
-    double zNear = reader.GetReal("camera", "near", 0.5);
-    double zFar = reader.GetReal("camera", "far", 50.0);
+    float fovy = (float)reader.GetReal("camera", "fov", 360.0);
+    float zNear = (float)reader.GetReal("camera", "near", 0.5);
+    float zFar = (float)reader.GetReal("camera", "far", 50.0);
+
+    // box
+    float boxWidth = (float)reader.GetReal("box", "width", 50.0);
+    float boxHeight = (float)reader.GetReal("box", "height", 50.0);
+    float boxDepth = (float)reader.GetReal("box", "depth", 50.0);
+    float boxTransX = (float)reader.GetReal("box", "transX", 50.0);
+    float boxTransY = (float)reader.GetReal("box", "transY", 50.0);
+    float boxTransZ = (float)reader.GetReal("box", "transZ", 50.0);
+    float boxRotX = (float)reader.GetReal("box", "rotX", 50.0);
+    float boxRotY = (float)reader.GetReal("box", "rotY", 50.0);
+    float boxRotZ = (float)reader.GetReal("box", "rotZ", 50.0);
+    float boxScaleX = (float)reader.GetReal("box", "scaleX", 50.0);
+    float boxScaleY = (float)reader.GetReal("box", "scaleY", 50.0);
+    float boxScaleZ = (float)reader.GetReal("box", "scaleZ", 50.0);
+    float boxRed = (float)reader.GetReal("box", "red", 1.0);
+    float boxGreen = (float)reader.GetReal("box", "green", 1.0);
+    float boxBlue = (float)reader.GetReal("box", "blue", 1.0);
+
+    // cylinder
+    float cylinderHeight = (float)reader.GetReal("cylinder", "height", 50.0);
+    float cylinderRadius = (float)reader.GetReal("cylinder", "radius", 50.0);
+    unsigned int cylinderSides = reader.GetInteger("cylinder", "sides", 50);
+    float cylinderTransX = (float)reader.GetReal("cylinder", "transX", 50.0);
+    float cylinderTransY = (float)reader.GetReal("cylinder", "transY", 50.0);
+    float cylinderTransZ = (float)reader.GetReal("cylinder", "transZ", 50.0);
+    float cylinderRotX = (float)reader.GetReal("cylinder", "rotX", 50.0);
+    float cylinderRotY = (float)reader.GetReal("cylinder", "rotY", 50.0);
+    float cylinderRotZ = (float)reader.GetReal("cylinder", "rotZ", 50.0);
+    float cylinderScaleX = (float)reader.GetReal("cylinder", "scaleX", 50.0);
+    float cylinderScaleY = (float)reader.GetReal("cylinder", "scaleY", 50.0);
+    float cylinderScaleZ = (float)reader.GetReal("cylinder", "scaleZ", 50.0);
+    float cylinderRed = (float)reader.GetReal("cylinder", "red", 1.0);
+    float cylinderGreen = (float)reader.GetReal("cylinder", "green", 1.0);
+    float cylinderBlue = (float)reader.GetReal("cylinder", "blue", 1.0);
+
+    // sphere
+    unsigned int sphereLongSegments = reader.GetInteger("sphere", "longSegments", 50);
+    unsigned int sphereLatSegments = reader.GetInteger("sphere", "latSegments", 50);
+    float sphereRadius = (float)reader.GetReal("sphere", "radius", 50.0);
+    float sphereTransX = (float)reader.GetReal("sphere", "transX", 50.0);
+    float sphereTransY = (float)reader.GetReal("sphere", "transY", 50.0);
+    float sphereTransZ = (float)reader.GetReal("sphere", "transZ", 50.0);
+    float sphereRotX = (float)reader.GetReal("sphere", "rotX", 50.0);
+    float sphereRotY = (float)reader.GetReal("sphere", "rotY", 50.0);
+    float sphereRotZ = (float)reader.GetReal("sphere", "rotZ", 50.0);
+    float sphereScaleX = (float)reader.GetReal("sphere", "scaleX", 50.0);
+    float sphereScaleY = (float)reader.GetReal("sphere", "scaleY", 50.0);
+    float sphereScaleZ = (float)reader.GetReal("sphere", "scaleZ", 50.0);
+    float sphereRed = (float)reader.GetReal("sphere", "red", 1.0);
+    float sphereGreen = (float)reader.GetReal("sphere", "green", 1.0);
+    float sphereBlue = (float)reader.GetReal("sphere", "blue", 1.0);
 
 
     /* --------------------------------------------- */
@@ -425,9 +313,7 @@ int main(int argc, char** argv)
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 #endif
 
-
         glfwSwapInterval(1);
-
 
         if (!initFramework()) {
             EXIT_WITH_ERROR("Failed to init framework")
@@ -442,49 +328,70 @@ int main(int argc, char** argv)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-
-    // Build the shaders for the two different teapots
-    unsigned int redShader = buildShader(glm::vec3(1.5f, 1.0f, 0.0f),  // translation
-        glm::vec3(0.0f, 0.0f, 0.0f),  // rotation
-        glm::vec3(1.0f, 2.0f, 1.0f),  // scale
-        glm::vec3(1.0f, 0.0f, 0.0f)); // color
-
-    unsigned int blueShader = buildShader(glm::vec3(-1.5f, -1.0f, 0.0f),
-        glm::vec3(0.0f, 0.5f, 0.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-        glm::vec3(0.0f, 0.0f, 1.0f));
-
-
-    // location of the view-projection matrices in the two shaders
-    int redProjLocation = glGetUniformLocation(redShader, "viewProj");
-    int blueProjLocation = glGetUniformLocation(blueShader, "viewProj");
+    // Read shaders
+    std::filesystem::path p = "";
+    string vertexShaderSource = readFile(p / "assets" / "shaders" / "vertexShader.txt");
+    string fragmentShaderSource = readFile(p / "assets" / "shaders" / "fragmentShader.txt");
     
+    // Generate shaders
+    Shader &boxShader = Shader(
+        vertexShaderSource,
+        fragmentShaderSource,
+        glm::vec3(boxTransX, boxTransY, boxTransZ),  // translation
+        glm::vec3(boxRotX, boxRotY, boxRotZ),  // rotation
+        glm::vec3(boxScaleX, boxScaleY, boxScaleZ),  // scale
+        glm::vec3(boxRed, boxGreen, boxBlue)); // color
+
+    Shader &cylinderShader = Shader(
+        vertexShaderSource,
+        fragmentShaderSource,
+        glm::vec3(cylinderTransX, cylinderTransY, cylinderTransZ),  // translation
+        glm::vec3(cylinderRotX, cylinderRotY, cylinderRotZ),  // rotation
+        glm::vec3(cylinderScaleX, cylinderScaleY, cylinderScaleZ),  // scale
+        glm::vec3(cylinderRed, cylinderGreen, cylinderBlue)); // color
+
+    Shader &sphereShader = Shader(
+        vertexShaderSource,
+        fragmentShaderSource,
+        glm::vec3(sphereTransX, sphereTransY, sphereTransZ),  // translation
+        glm::vec3(sphereRotX, sphereRotY, sphereRotZ),  // rotation
+        glm::vec3(sphereScaleX, sphereScaleY, sphereScaleZ),  // scale
+        glm::vec3(sphereRed, sphereGreen, sphereBlue)); // color
 
 
+    // Generate Shapes
+    Box box = Box(boxWidth, boxHeight, boxDepth);
+    Cylinder cylinder = Cylinder(cylinderHeight, cylinderRadius, cylinderSides);
+    Sphere sphere = Sphere(sphereLongSegments, sphereLatSegments, sphereRadius);
+
+    // Create Camera and cursor
     WindowInfo windowInfo = {
         Camera(fovy, height, width, zNear, zFar),
         Cursor()
     };
-    glfwSetWindowUserPointer(window, (void*)&windowInfo);
 
+    // window has a pointer to windowInfo in order to use the camera and cursor in the callbacks
+    glfwSetWindowUserPointer(window, (void*)&windowInfo);
     Camera& camera = windowInfo.camera;
     Cursor& cursor = windowInfo.cursor;
 
-	
-    glm::vec3 trans = glm::vec3(0.0f, 0.0f, 6.0f);
-    glm::vec3 rot = glm::vec3(1.0f, 1.0f, 1.0f);
-
 	glClearColor(1, 1, 1, 1);
+    // Render loop
 	while (!glfwWindowShouldClose(window))
 	{	
+        // Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // poll events
 		glfwPollEvents();
-		glUseProgram(redShader);
-        glUniformMatrix4fv(redProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
-		drawTeapot();
-		glUseProgram(blueShader);
-	    glUniformMatrix4fv(blueProjLocation, 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
-		drawTeapot();
+        // Bind the shader of each shape and draw it
+		BindShader useBox(boxShader, camera.ViewProjMatrix());
+        box.Draw();
+		BindShader useCylinder(cylinderShader, camera.ViewProjMatrix());
+        cylinder.Draw();
+		BindShader useSphere(sphereShader, camera.ViewProjMatrix());
+        sphere.Draw();
+
+        // swap buffers
 		glfwSwapBuffers(window);
 	}
 

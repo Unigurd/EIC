@@ -48,14 +48,14 @@ Sphere::Sphere(unsigned int longSegments, unsigned int latSegments, float radius
     }
 
     // Add the top faces to the index vector
-    for (int i = 0; i < longSegments; ++i) {
+    for (unsigned int i = 0; i < longSegments; ++i) {
         indices.push_back(0);
         indices.push_back(((i + 1) % longSegments) + 2);
         indices.push_back(i+2);
     }
 
     // Add the bottom faces to the index vector
-    for (int i = 0; i < longSegments; ++i) {
+    for (unsigned int i = 0; i < longSegments; ++i) {
         indices.push_back(1);
         indices.push_back(i+2+(longSegments * (latSegments - 2)));
         indices.push_back(((i + 1) % longSegments) + 2 + longSegments * (latSegments - 2));

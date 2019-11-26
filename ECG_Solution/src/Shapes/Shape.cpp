@@ -5,7 +5,7 @@
 void Shape::initVAO() {
     unsigned int VBO, EBO;
     glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO); // check for errors
+    glGenBuffers(1, &VBO); // Check for errors.
     glGenBuffers(1, &EBO);
 
     // ..:: Initialization code :: ..
