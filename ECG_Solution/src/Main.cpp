@@ -245,22 +245,40 @@ int main(int argc, char** argv)
     float cylinderGreen = (float)reader.GetReal("cylinder", "green", 1.0);
     float cylinderBlue = (float)reader.GetReal("cylinder", "blue", 1.0);
 
-    // sphere
-    unsigned int sphereLongSegments = reader.GetInteger("sphere", "longSegments", 50);
-    unsigned int sphereLatSegments = reader.GetInteger("sphere", "latSegments", 50);
-    float sphereRadius = (float)reader.GetReal("sphere", "radius", 50.0);
-    float sphereTransX = (float)reader.GetReal("sphere", "transX", 50.0);
-    float sphereTransY = (float)reader.GetReal("sphere", "transY", 50.0);
-    float sphereTransZ = (float)reader.GetReal("sphere", "transZ", 50.0);
-    float sphereRotX = (float)reader.GetReal("sphere", "rotX", 50.0);
-    float sphereRotY = (float)reader.GetReal("sphere", "rotY", 50.0);
-    float sphereRotZ = (float)reader.GetReal("sphere", "rotZ", 50.0);
-    float sphereScaleX = (float)reader.GetReal("sphere", "scaleX", 50.0);
-    float sphereScaleY = (float)reader.GetReal("sphere", "scaleY", 50.0);
-    float sphereScaleZ = (float)reader.GetReal("sphere", "scaleZ", 50.0);
-    float sphereRed = (float)reader.GetReal("sphere", "red", 1.0);
-    float sphereGreen = (float)reader.GetReal("sphere", "green", 1.0);
-    float sphereBlue = (float)reader.GetReal("sphere", "blue", 1.0);
+    // sphere1
+    unsigned int sphereLongSegments1 = reader.GetInteger("sphere1", "longSegments", 50);
+    unsigned int sphereLatSegments1 = reader.GetInteger("sphere1", "latSegments", 50);
+    float sphereRadius1 = (float)reader.GetReal("sphere1", "radius", 50.0);
+    float sphereTransX1 = (float)reader.GetReal("sphere1", "transX", 50.0);
+    float sphereTransY1 = (float)reader.GetReal("sphere1", "transY", 50.0);
+    float sphereTransZ1 = (float)reader.GetReal("sphere1", "transZ", 50.0);
+    float sphereRotX1 = (float)reader.GetReal("sphere1", "rotX", 50.0);
+    float sphereRotY1 = (float)reader.GetReal("sphere1", "rotY", 50.0);
+    float sphereRotZ1 = (float)reader.GetReal("sphere1", "rotZ", 50.0);
+    float sphereScaleX1 = (float)reader.GetReal("sphere1", "scaleX", 50.0);
+    float sphereScaleY1 = (float)reader.GetReal("sphere1", "scaleY", 50.0);
+    float sphereScaleZ1 = (float)reader.GetReal("sphere1", "scaleZ", 50.0);
+    float sphereRed1 = (float)reader.GetReal("sphere1", "red", 1.0);
+    float sphereGreen1 = (float)reader.GetReal("sphere1", "green", 1.0);
+    float sphereBlue1 = (float)reader.GetReal("sphere1", "blue", 1.0);
+
+    // sphere2
+    unsigned int sphereLongSegments2 = reader.GetInteger("sphere2", "longSegments", 50);
+    unsigned int sphereLatSegments2 = reader.GetInteger("sphere2", "latSegments", 50);
+    float sphereRadius2 = (float)reader.GetReal("sphere2", "radius", 50.0);
+    float sphereTransX2 = (float)reader.GetReal("sphere2", "transX", 50.0);
+    float sphereTransY2 = (float)reader.GetReal("sphere2", "transY", 50.0);
+    float sphereTransZ2 = (float)reader.GetReal("sphere2", "transZ", 50.0);
+    float sphereRotX2 = (float)reader.GetReal("sphere2", "rotX", 50.0);
+    float sphereRotY2 = (float)reader.GetReal("sphere2", "rotY", 50.0);
+    float sphereRotZ2 = (float)reader.GetReal("sphere2", "rotZ", 50.0);
+    float sphereScaleX2 = (float)reader.GetReal("sphere2", "scaleX", 50.0);
+    float sphereScaleY2 = (float)reader.GetReal("sphere2", "scaleY", 50.0);
+    float sphereScaleZ2 = (float)reader.GetReal("sphere2", "scaleZ", 50.0);
+    float sphereRed2 = (float)reader.GetReal("sphere2", "red", 1.0);
+    float sphereGreen2 = (float)reader.GetReal("sphere2", "green", 1.0);
+    float sphereBlue2 = (float)reader.GetReal("sphere2", "blue", 1.0);
+
 
 
     /* --------------------------------------------- */
@@ -350,19 +368,28 @@ int main(int argc, char** argv)
         glm::vec3(cylinderScaleX, cylinderScaleY, cylinderScaleZ),  // scale
         glm::vec3(cylinderRed, cylinderGreen, cylinderBlue)); // color
 
-    Shader &sphereShader = Shader(
+    Shader &sphereShader1 = Shader(
         vertexShaderSource,
         fragmentShaderSource,
-        glm::vec3(sphereTransX, sphereTransY, sphereTransZ),  // translation
-        glm::vec3(sphereRotX, sphereRotY, sphereRotZ),  // rotation
-        glm::vec3(sphereScaleX, sphereScaleY, sphereScaleZ),  // scale
-        glm::vec3(sphereRed, sphereGreen, sphereBlue)); // color
+        glm::vec3(sphereTransX1, sphereTransY1, sphereTransZ1),  // translation
+        glm::vec3(sphereRotX1, sphereRotY1, sphereRotZ1),  // rotation
+        glm::vec3(sphereScaleX1, sphereScaleY1, sphereScaleZ1),  // scale
+        glm::vec3(sphereRed1, sphereGreen1, sphereBlue1)); // color
+
+    Shader &sphereShader2 = Shader(
+        vertexShaderSource,
+        fragmentShaderSource,
+        glm::vec3(sphereTransX2, sphereTransY2, sphereTransZ2),  // translation
+        glm::vec3(sphereRotX2, sphereRotY2, sphereRotZ2),  // rotation
+        glm::vec3(sphereScaleX2, sphereScaleY2, sphereScaleZ2),  // scale
+        glm::vec3(sphereRed2, sphereGreen2, sphereBlue2)); // color
 
 
     // Generate Shapes
     Box box = Box(boxWidth, boxHeight, boxDepth);
     Cylinder cylinder = Cylinder(cylinderHeight, cylinderRadius, cylinderSides);
-    Sphere sphere = Sphere(sphereLongSegments, sphereLatSegments, sphereRadius);
+    Sphere sphere1 = Sphere(sphereLongSegments1, sphereLatSegments1, sphereRadius1);
+    Sphere sphere2 = Sphere(sphereLongSegments2, sphereLatSegments2, sphereRadius2);
 
     // Create Camera and cursor
     WindowInfo windowInfo = {
@@ -388,8 +415,10 @@ int main(int argc, char** argv)
         box.Draw();
 		BindShader useCylinder(cylinderShader, camera.ViewProjMatrix());
         cylinder.Draw();
-		BindShader useSphere(sphereShader, camera.ViewProjMatrix());
-        sphere.Draw();
+		BindShader useSphere1(sphereShader1, camera.ViewProjMatrix());
+        sphere1.Draw();
+		BindShader useSphere2(sphereShader2, camera.ViewProjMatrix());
+        sphere2.Draw();
 
         // swap buffers
 		glfwSwapBuffers(window);
