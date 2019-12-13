@@ -45,12 +45,22 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), sca);
 	glm::mat4 model = translate * rotation * scale;
 
+    glm::vec3 lightColor = glm::vec3(0.8, 0.8, 0.8);
+    glm::vec3 lightDirection = glm::vec3(0.0, -1.0, -1.0);
+
     // Set the model and color uniforms in the shader program
     glUseProgram(shaderID);
 	int modelLocation = glGetUniformLocation(shaderID, "model");
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
 	int colorLocation = glGetUniformLocation(shaderID, "color");
 	glUniform3fv(colorLocation, 1, glm::value_ptr(col));
+
+	int lightColorLocation = glGetUniformLocation(shaderID, "lightColor");
+	glUniform3fv(lightColorLocation, 1, glm::value_ptr(lightColor));
+	int lightDirLocation = glGetUniformLocation(shaderID, "lightDir");
+	glUniform3fv(lightDirLocation, 1, glm::value_ptr(lightDirection));
+    int ambientStrengthLocation = glGetUniformLocation(shaderID, "ambientStrength");
+    glUniform1f(ambientStrengthLocation, 0.5);
     viewProjLocation = glGetUniformLocation(shaderID, "viewProj");
 
     // restore previously bound shader

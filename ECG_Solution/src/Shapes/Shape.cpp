@@ -20,6 +20,8 @@ void Shape::initVAO() {
     // 4. then set the vertex attributes pointers
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)3);
+    glEnableVertexAttribArray(1);
 }
 void Shape::Draw() {
     glPointSize(5.0f); // tmp line, remove

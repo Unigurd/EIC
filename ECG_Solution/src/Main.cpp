@@ -350,27 +350,29 @@ int main(int argc, char** argv)
     std::filesystem::path p = "";
     string vertexShaderSource = readFile(p / "assets" / "shaders" / "vertexShader.txt");
     string fragmentShaderSource = readFile(p / "assets" / "shaders" / "fragmentShader.txt");
+    string vertexShaderPhongSource = readFile(p / "assets" / "shaders" / "vertexShaderPhong.txt");
+    string fragmentShaderPhongSource = readFile(p / "assets" / "shaders" / "fragmentShaderPhong.txt");
     
     // Generate shaders
     Shader &boxShader = Shader(
-        vertexShaderSource,
-        fragmentShaderSource,
+        vertexShaderPhongSource,
+        fragmentShaderPhongSource,
         glm::vec3(boxTransX, boxTransY, boxTransZ),  // translation
         glm::vec3(boxRotX, boxRotY, boxRotZ),  // rotation
         glm::vec3(boxScaleX, boxScaleY, boxScaleZ),  // scale
         glm::vec3(boxRed, boxGreen, boxBlue)); // color
 
     Shader &cylinderShader = Shader(
-        vertexShaderSource,
-        fragmentShaderSource,
+        vertexShaderPhongSource,
+        fragmentShaderPhongSource,
         glm::vec3(cylinderTransX, cylinderTransY, cylinderTransZ),  // translation
         glm::vec3(cylinderRotX, cylinderRotY, cylinderRotZ),  // rotation
         glm::vec3(cylinderScaleX, cylinderScaleY, cylinderScaleZ),  // scale
         glm::vec3(cylinderRed, cylinderGreen, cylinderBlue)); // color
 
     Shader &sphereShader1 = Shader(
-        vertexShaderSource,
-        fragmentShaderSource,
+        vertexShaderPhongSource,
+        fragmentShaderPhongSource,
         glm::vec3(sphereTransX1, sphereTransY1, sphereTransZ1),  // translation
         glm::vec3(sphereRotX1, sphereRotY1, sphereRotZ1),  // rotation
         glm::vec3(sphereScaleX1, sphereScaleY1, sphereScaleZ1),  // scale

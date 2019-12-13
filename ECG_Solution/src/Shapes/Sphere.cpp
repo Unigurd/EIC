@@ -10,7 +10,9 @@
 Sphere::Sphere(unsigned int longSegments, unsigned int latSegments, float radius) {
     // Top and bottom vertex are special cases
     float vs[] = {
-        0.0, radius, 0.0,
+        0.0, radius, 0.0, 
+        0.0, radius, 0.0, 
+        0.0, -radius, 0.0,
         0.0, -radius, 0.0
     };
 
@@ -28,6 +30,12 @@ Sphere::Sphere(unsigned int longSegments, unsigned int latSegments, float radius
             float y = radius * glm::cos(polar);
             float z = radius * glm::sin(polar) * glm::sin(azimuth);
 
+            // position
+            vertices.push_back(x);
+            vertices.push_back(y);
+            vertices.push_back(z);
+
+            // normal
             vertices.push_back(x);
             vertices.push_back(y);
             vertices.push_back(z);
