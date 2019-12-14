@@ -4,9 +4,10 @@ layout (location = 1) in vec3 aNorm;
 uniform mat4 model;
 uniform mat4 viewProj;
 
-out vec4 norm;
+out vec3 norm;
 void main()
 {
     gl_Position = viewProj * model * vec4(aPos,1);
-    norm = model * vec4(aNorm,1);
+    norm = aNorm;
+    //norm = model * vec4(aNorm,1);
 }

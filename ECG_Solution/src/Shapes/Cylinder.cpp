@@ -80,26 +80,6 @@ Cylinder::Cylinder(float height, float radius, unsigned int sides) {
         indices.push_back(((4 * (i+1) + 2) % (4* sides)) + 2);
         indices.push_back((4 * i + 5));
 
-//        // top surface
-//        indices.push_back(0);
-//        indices.push_back(2*i);
-//        indices.push_back(((2 * i) % (2* sides)) + 2);
-//
-//        // bottom surface
-//        indices.push_back(1);
-//        indices.push_back((2 * i + 1) % (2 * sides) + 2);
-//        indices.push_back(2 * i + 1);
-
-//        // side triangle 1
-//        indices.push_back(2 * i);
-//        indices.push_back((2 * i + 1));
-//        indices.push_back(((2 * i) % (2* sides)) + 2);
-//
-//        // side triangle 2
-//        indices.push_back((2 * i + 1) % (2 * sides) + 2);
-//        indices.push_back(((2 * i) % (2* sides)) + 2);
-//        indices.push_back((2 * i + 1));
-
     }
 
     initVAO();
