@@ -203,81 +203,81 @@ int main(int argc, char** argv)
 
     // load values from ini file
     // first param: section [window], second param: property name, third param: default value
-    int width = reader.GetInteger("window", "width", 80);
-    int height = reader.GetInteger("window", "height", 80);
+    int width                    = reader.GetInteger("window", "width", 80);
+    int height                   = reader.GetInteger("window", "height", 80);
     std::string tmp_window_title = reader.Get("window", "title", "Title not loaded");
-    const char * window_title = tmp_window_title.c_str();
-    float fovy = (float)reader.GetReal("camera", "fov", 360.0);
-    float zNear = (float)reader.GetReal("camera", "near", 0.5);
-    float zFar = (float)reader.GetReal("camera", "far", 50.0);
+    const char * window_title    = tmp_window_title.c_str();
+    float fovy                   = (float)reader.GetReal("camera", "fov", 360.0);
+    float zNear                  = (float)reader.GetReal("camera", "near", 0.5);
+    float zFar                   = (float)reader.GetReal("camera", "far", 50.0);
 
     // box
-    float boxWidth = (float)reader.GetReal("box", "width", 50.0);
+    float boxWidth  = (float)reader.GetReal("box", "width", 50.0);
     float boxHeight = (float)reader.GetReal("box", "height", 50.0);
-    float boxDepth = (float)reader.GetReal("box", "depth", 50.0);
+    float boxDepth  = (float)reader.GetReal("box", "depth", 50.0);
     float boxTransX = (float)reader.GetReal("box", "transX", 50.0);
     float boxTransY = (float)reader.GetReal("box", "transY", 50.0);
     float boxTransZ = (float)reader.GetReal("box", "transZ", 50.0);
-    float boxRotX = (float)reader.GetReal("box", "rotX", 50.0);
-    float boxRotY = (float)reader.GetReal("box", "rotY", 50.0);
-    float boxRotZ = (float)reader.GetReal("box", "rotZ", 50.0);
+    float boxRotX   = (float)reader.GetReal("box", "rotX", 50.0);
+    float boxRotY   = (float)reader.GetReal("box", "rotY", 50.0);
+    float boxRotZ   = (float)reader.GetReal("box", "rotZ", 50.0);
     float boxScaleX = (float)reader.GetReal("box", "scaleX", 50.0);
     float boxScaleY = (float)reader.GetReal("box", "scaleY", 50.0);
     float boxScaleZ = (float)reader.GetReal("box", "scaleZ", 50.0);
-    float boxRed = (float)reader.GetReal("box", "red", 1.0);
-    float boxGreen = (float)reader.GetReal("box", "green", 1.0);
-    float boxBlue = (float)reader.GetReal("box", "blue", 1.0);
+    float boxRed    = (float)reader.GetReal("box", "red", 1.0);
+    float boxGreen  = (float)reader.GetReal("box", "green", 1.0);
+    float boxBlue   = (float)reader.GetReal("box", "blue", 1.0);
 
     // cylinder
-    float cylinderHeight = (float)reader.GetReal("cylinder", "height", 50.0);
-    float cylinderRadius = (float)reader.GetReal("cylinder", "radius", 50.0);
+    float cylinderHeight       = (float)reader.GetReal("cylinder", "height", 50.0);
+    float cylinderRadius       = (float)reader.GetReal("cylinder", "radius", 50.0);
     unsigned int cylinderSides = reader.GetInteger("cylinder", "sides", 50);
-    float cylinderTransX = (float)reader.GetReal("cylinder", "transX", 50.0);
-    float cylinderTransY = (float)reader.GetReal("cylinder", "transY", 50.0);
-    float cylinderTransZ = (float)reader.GetReal("cylinder", "transZ", 50.0);
-    float cylinderRotX = (float)reader.GetReal("cylinder", "rotX", 50.0);
-    float cylinderRotY = (float)reader.GetReal("cylinder", "rotY", 50.0);
-    float cylinderRotZ = (float)reader.GetReal("cylinder", "rotZ", 50.0);
-    float cylinderScaleX = (float)reader.GetReal("cylinder", "scaleX", 50.0);
-    float cylinderScaleY = (float)reader.GetReal("cylinder", "scaleY", 50.0);
-    float cylinderScaleZ = (float)reader.GetReal("cylinder", "scaleZ", 50.0);
-    float cylinderRed = (float)reader.GetReal("cylinder", "red", 1.0);
-    float cylinderGreen = (float)reader.GetReal("cylinder", "green", 1.0);
-    float cylinderBlue = (float)reader.GetReal("cylinder", "blue", 1.0);
+    float cylinderTransX       = (float)reader.GetReal("cylinder", "transX", 50.0);
+    float cylinderTransY       = (float)reader.GetReal("cylinder", "transY", 50.0);
+    float cylinderTransZ       = (float)reader.GetReal("cylinder", "transZ", 50.0);
+    float cylinderRotX         = (float)reader.GetReal("cylinder", "rotX", 50.0);
+    float cylinderRotY         = (float)reader.GetReal("cylinder", "rotY", 50.0);
+    float cylinderRotZ         = (float)reader.GetReal("cylinder", "rotZ", 50.0);
+    float cylinderScaleX       = (float)reader.GetReal("cylinder", "scaleX", 50.0);
+    float cylinderScaleY       = (float)reader.GetReal("cylinder", "scaleY", 50.0);
+    float cylinderScaleZ       = (float)reader.GetReal("cylinder", "scaleZ", 50.0);
+    float cylinderRed          = (float)reader.GetReal("cylinder", "red", 1.0);
+    float cylinderGreen        = (float)reader.GetReal("cylinder", "green", 1.0);
+    float cylinderBlue         = (float)reader.GetReal("cylinder", "blue", 1.0);
 
     // sphere1
     unsigned int sphereLongSegments1 = reader.GetInteger("sphere1", "longSegments", 50);
-    unsigned int sphereLatSegments1 = reader.GetInteger("sphere1", "latSegments", 50);
-    float sphereRadius1 = (float)reader.GetReal("sphere1", "radius", 50.0);
-    float sphereTransX1 = (float)reader.GetReal("sphere1", "transX", 50.0);
-    float sphereTransY1 = (float)reader.GetReal("sphere1", "transY", 50.0);
-    float sphereTransZ1 = (float)reader.GetReal("sphere1", "transZ", 50.0);
-    float sphereRotX1 = (float)reader.GetReal("sphere1", "rotX", 50.0);
-    float sphereRotY1 = (float)reader.GetReal("sphere1", "rotY", 50.0);
-    float sphereRotZ1 = (float)reader.GetReal("sphere1", "rotZ", 50.0);
-    float sphereScaleX1 = (float)reader.GetReal("sphere1", "scaleX", 50.0);
-    float sphereScaleY1 = (float)reader.GetReal("sphere1", "scaleY", 50.0);
-    float sphereScaleZ1 = (float)reader.GetReal("sphere1", "scaleZ", 50.0);
-    float sphereRed1 = (float)reader.GetReal("sphere1", "red", 1.0);
-    float sphereGreen1 = (float)reader.GetReal("sphere1", "green", 1.0);
-    float sphereBlue1 = (float)reader.GetReal("sphere1", "blue", 1.0);
+    unsigned int sphereLatSegments1  = reader.GetInteger("sphere1", "latSegments", 50);
+    float sphereRadius1              = (float)reader.GetReal("sphere1", "radius", 50.0);
+    float sphereTransX1              = (float)reader.GetReal("sphere1", "transX", 50.0);
+    float sphereTransY1              = (float)reader.GetReal("sphere1", "transY", 50.0);
+    float sphereTransZ1              = (float)reader.GetReal("sphere1", "transZ", 50.0);
+    float sphereRotX1                = (float)reader.GetReal("sphere1", "rotX", 50.0);
+    float sphereRotY1                = (float)reader.GetReal("sphere1", "rotY", 50.0);
+    float sphereRotZ1                = (float)reader.GetReal("sphere1", "rotZ", 50.0);
+    float sphereScaleX1              = (float)reader.GetReal("sphere1", "scaleX", 50.0);
+    float sphereScaleY1              = (float)reader.GetReal("sphere1", "scaleY", 50.0);
+    float sphereScaleZ1              = (float)reader.GetReal("sphere1", "scaleZ", 50.0);
+    float sphereRed1                 = (float)reader.GetReal("sphere1", "red", 1.0);
+    float sphereGreen1               = (float)reader.GetReal("sphere1", "green", 1.0);
+    float sphereBlue1                = (float)reader.GetReal("sphere1", "blue", 1.0);
 
     // sphere2
     unsigned int sphereLongSegments2 = reader.GetInteger("sphere2", "longSegments", 50);
-    unsigned int sphereLatSegments2 = reader.GetInteger("sphere2", "latSegments", 50);
-    float sphereRadius2 = (float)reader.GetReal("sphere2", "radius", 50.0);
-    float sphereTransX2 = (float)reader.GetReal("sphere2", "transX", 50.0);
-    float sphereTransY2 = (float)reader.GetReal("sphere2", "transY", 50.0);
-    float sphereTransZ2 = (float)reader.GetReal("sphere2", "transZ", 50.0);
-    float sphereRotX2 = (float)reader.GetReal("sphere2", "rotX", 50.0);
-    float sphereRotY2 = (float)reader.GetReal("sphere2", "rotY", 50.0);
-    float sphereRotZ2 = (float)reader.GetReal("sphere2", "rotZ", 50.0);
-    float sphereScaleX2 = (float)reader.GetReal("sphere2", "scaleX", 50.0);
-    float sphereScaleY2 = (float)reader.GetReal("sphere2", "scaleY", 50.0);
-    float sphereScaleZ2 = (float)reader.GetReal("sphere2", "scaleZ", 50.0);
-    float sphereRed2 = (float)reader.GetReal("sphere2", "red", 1.0);
-    float sphereGreen2 = (float)reader.GetReal("sphere2", "green", 1.0);
-    float sphereBlue2 = (float)reader.GetReal("sphere2", "blue", 1.0);
+    unsigned int sphereLatSegments2  = reader.GetInteger("sphere2", "latSegments", 50);
+    float sphereRadius2              = (float)reader.GetReal("sphere2", "radius", 50.0);
+    float sphereTransX2              = (float)reader.GetReal("sphere2", "transX", 50.0);
+    float sphereTransY2              = (float)reader.GetReal("sphere2", "transY", 50.0);
+    float sphereTransZ2              = (float)reader.GetReal("sphere2", "transZ", 50.0);
+    float sphereRotX2                = (float)reader.GetReal("sphere2", "rotX", 50.0);
+    float sphereRotY2                = (float)reader.GetReal("sphere2", "rotY", 50.0);
+    float sphereRotZ2                = (float)reader.GetReal("sphere2", "rotZ", 50.0);
+    float sphereScaleX2              = (float)reader.GetReal("sphere2", "scaleX", 50.0);
+    float sphereScaleY2              = (float)reader.GetReal("sphere2", "scaleY", 50.0);
+    float sphereScaleZ2              = (float)reader.GetReal("sphere2", "scaleZ", 50.0);
+    float sphereRed2                 = (float)reader.GetReal("sphere2", "red", 1.0);
+    float sphereGreen2               = (float)reader.GetReal("sphere2", "green", 1.0);
+    float sphereBlue2                = (float)reader.GetReal("sphere2", "blue", 1.0);
 
 
 
@@ -348,9 +348,9 @@ int main(int argc, char** argv)
 
     // Read shaders
     std::filesystem::path p = "";
-    string vertexShaderSource = readFile(p / "assets" / "shaders" / "vertexShader.txt");
-    string fragmentShaderSource = readFile(p / "assets" / "shaders" / "fragmentShader.txt");
-    string vertexShaderPhongSource = readFile(p / "assets" / "shaders" / "vertexShaderPhong.txt");
+    string vertexShaderSource        = readFile(p / "assets" / "shaders" / "vertexShader.txt");
+    string fragmentShaderSource      = readFile(p / "assets" / "shaders" / "fragmentShader.txt");
+    string vertexShaderPhongSource   = readFile(p / "assets" / "shaders" / "vertexShaderPhong.txt");
     string fragmentShaderPhongSource = readFile(p / "assets" / "shaders" / "fragmentShaderPhong.txt");
     
     // Generate shaders
@@ -390,8 +390,8 @@ int main(int argc, char** argv)
     // Generate Shapes
     Box box = Box(boxWidth, boxHeight, boxDepth);
     Cylinder cylinder = Cylinder(cylinderHeight, cylinderRadius, cylinderSides);
-    Sphere sphere1 = Sphere(sphereLongSegments1, sphereLatSegments1, sphereRadius1);
-    Sphere sphere2 = Sphere(sphereLongSegments2, sphereLatSegments2, sphereRadius2);
+    Sphere sphere1    = Sphere(sphereLongSegments1, sphereLatSegments1, sphereRadius1);
+    Sphere sphere2    = Sphere(sphereLongSegments2, sphereLatSegments2, sphereRadius2);
 
     // Create Camera and cursor
     WindowInfo windowInfo = {
