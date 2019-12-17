@@ -365,8 +365,8 @@ int main(int argc, char** argv)
     std::filesystem::path p = "";
     string vertexShaderSource        = readFile(p / "assets" / "shaders" / "vertexShader.vs");
     string fragmentShaderSource      = readFile(p / "assets" / "shaders" / "fragmentShader.fs");
-    string vertexShaderPhongSource   = readFile(p / "assets" / "shaders" / "vertexShaderPhong.vs");
-    string fragmentShaderPhongSource = readFile(p / "assets" / "shaders" / "fragmentShaderPhong.fs");
+    string vertexShaderPhongSource   = readFile(p / "assets" / "shaders" / "vertexShaderPointPhong.vs");
+    string fragmentShaderPhongSource = readFile(p / "assets" / "shaders" / "fragmentShaderPointPhong.fs");
     
     Surface boxSurface; boxSurface.alpha = boxAlpha;
     boxSurface.ka = boxKA; boxSurface.kd = boxKD; boxSurface.ks = boxKS;

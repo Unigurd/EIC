@@ -49,6 +49,9 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
     glm::vec3 lightColor = glm::vec3(1.0, 1.0, 1.0);
     glm::vec3 lightDirection = glm::vec3(0.0, -1.0, -1.0);
     glm::vec3 lightPos = glm::vec3(0.0, 0.0, 0.0);
+    float attConst = 1.0;
+    float attLin = 0.4;
+    float attQuad = 0.1;
 
     // Set the model and color uniforms in the shader program
     glUseProgram(shaderID);
@@ -66,6 +69,13 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
 	glUniform3fv(pointLightColorLocation, 1, glm::value_ptr(lightColor));
 	int pointLightPosLocation = glGetUniformLocation(shaderID, "pointLightPos");
 	glUniform3fv(pointLightPosLocation, 1, glm::value_ptr(lightPos));
+
+	int attConstLocation = glGetUniformLocation(shaderID, "attConst");
+	glUniform1f(attConstLocation, attConst);
+	int attLinLocation = glGetUniformLocation(shaderID, "attLin");
+	glUniform1f(attLinLocation, attLin);
+	int attQuadLocation = glGetUniformLocation(shaderID, "attQuad");
+	glUniform1f(attQuadLocation, attQuad);
 
     viewProjLocation = glGetUniformLocation(shaderID, "viewProj");
     cameraPosLocation  = glGetUniformLocation(shaderID, "cameraPos");
