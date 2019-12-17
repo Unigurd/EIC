@@ -45,8 +45,10 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), sca);
 	glm::mat4 model = translate * rotation * scale;
 
-    glm::vec3 lightColor = glm::vec3(0.8, 0.8, 0.8);
+    // tmp stuff
+    glm::vec3 lightColor = glm::vec3(1.0, 1.0, 1.0);
     glm::vec3 lightDirection = glm::vec3(0.0, -1.0, -1.0);
+    glm::vec3 lightPos = glm::vec3(0.0, 0.0, 0.0);
 
     // Set the model and color uniforms in the shader program
     glUseProgram(shaderID);
@@ -59,7 +61,11 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
 	glUniform3fv(dirLightColorLocation, 1, glm::value_ptr(lightColor));
 	int dirLightDirLocation = glGetUniformLocation(shaderID, "dirLightDir");
 	glUniform3fv(dirLightDirLocation, 1, glm::value_ptr(lightDirection));
-    int ambientStrengthLocation = glGetUniformLocation(shaderID, "ambientStrength");
+
+	int pointLightColorLocation = glGetUniformLocation(shaderID, "pointLightColor");
+	glUniform3fv(pointLightColorLocation, 1, glm::value_ptr(lightColor));
+	int pointLightPosLocation = glGetUniformLocation(shaderID, "pointLightPos");
+	glUniform3fv(pointLightPosLocation, 1, glm::value_ptr(lightPos));
 
     viewProjLocation = glGetUniformLocation(shaderID, "viewProj");
     cameraPosLocation  = glGetUniformLocation(shaderID, "cameraPos");
