@@ -12,13 +12,13 @@ class Shader {
 private:
     unsigned int shaderID;
     int viewProjLocation;
-    int viewPosLocation;
+    int cameraPosLocation;
 public:
     // TODO move rest of shape-related parameters into the Shape
     Shader(std::string vertexShaderString, std::string fragmentShaderString, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col, Shape shape);
     unsigned int ID();
     int ViewProjLocation();
-    int ViewPosLocation();
+    int CameraPosLocation();
 };
 
 // This struct exists to make sure that the previously bound

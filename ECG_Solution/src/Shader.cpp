@@ -55,21 +55,23 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
 	int colorLocation = glGetUniformLocation(shaderID, "color");
 	glUniform3fv(colorLocation, 1, glm::value_ptr(col));
 
-	int lightColorLocation = glGetUniformLocation(shaderID, "lightColor");
-	glUniform3fv(lightColorLocation, 1, glm::value_ptr(lightColor));
-	int lightDirLocation = glGetUniformLocation(shaderID, "lightDir");
-	glUniform3fv(lightDirLocation, 1, glm::value_ptr(lightDirection));
+	int dirLightColorLocation = glGetUniformLocation(shaderID, "dirLightColor");
+	glUniform3fv(dirLightColorLocation, 1, glm::value_ptr(lightColor));
+	int dirLightDirLocation = glGetUniformLocation(shaderID, "dirLightDir");
+	glUniform3fv(dirLightDirLocation, 1, glm::value_ptr(lightDirection));
     int ambientStrengthLocation = glGetUniformLocation(shaderID, "ambientStrength");
 
     viewProjLocation = glGetUniformLocation(shaderID, "viewProj");
-    viewPosLocation  = glGetUniformLocation(shaderID, "viewPos");
+    cameraPosLocation  = glGetUniformLocation(shaderID, "cameraPos");
 
-    int kaLocation = glGetUniformLocation(shaderID, "ka");
-    int kdLocation = glGetUniformLocation(shaderID, "kd");
-    int ksLocation = glGetUniformLocation(shaderID, "ks");
+    int kaLocation    = glGetUniformLocation(shaderID, "ka");
+    int kdLocation    = glGetUniformLocation(shaderID, "kd");
+    int ksLocation    = glGetUniformLocation(shaderID, "ks");
+    int alphaLocation = glGetUniformLocation(shaderID, "alpha");
     glUniform1f(kaLocation, shape.GetSurface().ka);
     glUniform1f(kdLocation, shape.GetSurface().kd);
     glUniform1f(ksLocation, shape.GetSurface().ks);
+    glUniform1i(alphaLocation, shape.GetSurface().alpha);
 
 
     // restore previously bound shader
@@ -78,7 +80,7 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
 
 unsigned int Shader::ID() { return shaderID; }
 int Shader::ViewProjLocation() { return viewProjLocation; }
-int Shader::ViewPosLocation() { return viewPosLocation; }
+int Shader::CameraPosLocation() { return cameraPosLocation; }
 
 
 
@@ -98,7 +100,7 @@ BindShader::BindShader(Shader &shader, Camera &camera) {
     // bind new shader
     glUseProgram(shader.ID());
     glUniformMatrix4fv(shader.ViewProjLocation(), 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
-    glUniform4fv(shader.ViewPosLocation(), 1, glm::value_ptr(camera.ViewPosMatrix()));
+    glUniform4fv(shader.CameraPosLocation(), 1, glm::value_ptr(camera.ViewPosMatrix()));
 }
 
 // Restore previously used program when binding goes out of scope

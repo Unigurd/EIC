@@ -53,7 +53,6 @@ glm::vec4 Camera::ViewPosMatrix(){
     //glm::vec4 bla = glm::inverse(ViewProjMatrix()) * glm::vec4(1.0, 1.0, 1.0, 1.0);
     glm::mat4 vp = glm::inverse(ViewProjMatrix());
     glm::vec4 bla = glm::vec4(vp[3][0], vp[3][1], vp[3][2], 0.0);
-    std::cout << bla[0] << " " << bla[1] << " " << bla[2] << " " << bla[3] << std::endl;
     return  bla;
     //return glm::vec4(1.0, 1.0, 1.0, 1.0);
 }
