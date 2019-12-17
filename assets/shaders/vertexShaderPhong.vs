@@ -5,6 +5,7 @@ uniform mat4 model;
 uniform mat4 viewProj;
 uniform vec3 lightDir;
 
+
 out vec3 norm;
 out vec3 viewLightDir;
 out vec3 fragPos;

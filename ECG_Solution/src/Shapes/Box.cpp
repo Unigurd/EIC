@@ -4,7 +4,8 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-Box::Box(float width, float height, float depth) {
+Box::Box(float width, float height, float depth, Surface srfc) {
+    surface = srfc;
     // The corners of the box
     float vs[] = {
          // x-axis normals

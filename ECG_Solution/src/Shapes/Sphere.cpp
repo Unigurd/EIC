@@ -7,7 +7,8 @@
 
 
 
-Sphere::Sphere(unsigned int longSegments, unsigned int latSegments, float radius) {
+Sphere::Sphere(unsigned int longSegments, unsigned int latSegments, float radius, Surface srfc) {
+    surface = srfc;
     // Top and bottom vertex are special cases
     float vs[] = {
         0.0, radius, 0.0, 

@@ -4,7 +4,7 @@
 
 class Cylinder : public Shape {
 public:
-    Cylinder(float height, float radius, unsigned int sides);
+    Cylinder(float height, float radius, unsigned int sides, Surface srfc);
     ~Cylinder();
 };
 

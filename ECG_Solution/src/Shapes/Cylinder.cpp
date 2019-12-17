@@ -5,7 +5,8 @@
 #include <iostream>
 
 
-Cylinder::Cylinder(float height, float radius, unsigned int sides) {
+Cylinder::Cylinder(float height, float radius, unsigned int sides, Surface srfc) {
+    surface = srfc;
     // top and bottom middle vertices + normals
     float vs[] = {
         0.0f, height/2.0f, 0.0f,

@@ -227,6 +227,10 @@ int main(int argc, char** argv)
     float boxRed    = (float)reader.GetReal("box", "red", 1.0);
     float boxGreen  = (float)reader.GetReal("box", "green", 1.0);
     float boxBlue   = (float)reader.GetReal("box", "blue", 1.0);
+    float boxKA     = (float)reader.GetReal("box", "ka", 1);
+    float boxKD     = (float)reader.GetReal("box", "kd", 1);
+    float boxKS     = (float)reader.GetReal("box", "ks", 1);
+    int boxAlpha    = reader.GetInteger("box", "alpha", 2);
 
     // cylinder
     float cylinderHeight       = (float)reader.GetReal("cylinder", "height", 50.0);
@@ -244,6 +248,10 @@ int main(int argc, char** argv)
     float cylinderRed          = (float)reader.GetReal("cylinder", "red", 1.0);
     float cylinderGreen        = (float)reader.GetReal("cylinder", "green", 1.0);
     float cylinderBlue         = (float)reader.GetReal("cylinder", "blue", 1.0);
+    float cylinderKA           = (float)reader.GetReal("cylinder", "ka", 1);
+    float cylinderKD           = (float)reader.GetReal("cylinder", "kd", 1);
+    float cylinderKS           = (float)reader.GetReal("cylinder", "ks", 1);
+    int cylinderAlpha          = reader.GetInteger("cylinder", "alpha", 2);
 
     // sphere1
     unsigned int sphereLongSegments1 = reader.GetInteger("sphere1", "longSegments", 50);
@@ -261,6 +269,10 @@ int main(int argc, char** argv)
     float sphereRed1                 = (float)reader.GetReal("sphere1", "red", 1.0);
     float sphereGreen1               = (float)reader.GetReal("sphere1", "green", 1.0);
     float sphereBlue1                = (float)reader.GetReal("sphere1", "blue", 1.0);
+    float sphereKA1                  = (float)reader.GetReal("sphere1", "ka", 1);
+    float sphereKD1                  = (float)reader.GetReal("sphere1", "kd", 1);
+    float sphereKS1                  = (float)reader.GetReal("sphere1", "ks", 1);
+    int sphereAlpha1                 = reader.GetInteger("sphere1", "alpha", 2);
 
     // sphere2
     unsigned int sphereLongSegments2 = reader.GetInteger("sphere2", "longSegments", 50);
@@ -278,7 +290,10 @@ int main(int argc, char** argv)
     float sphereRed2                 = (float)reader.GetReal("sphere2", "red", 1.0);
     float sphereGreen2               = (float)reader.GetReal("sphere2", "green", 1.0);
     float sphereBlue2                = (float)reader.GetReal("sphere2", "blue", 1.0);
-
+    float sphereKA2                  = (float)reader.GetReal("sphere2", "ka", 2);
+    float sphereKD2                  = (float)reader.GetReal("sphere2", "kd", 2);
+    float sphereKS2                  = (float)reader.GetReal("sphere2", "ks", 2);
+    int sphereAlpha2                 = reader.GetInteger("sphere2", "alpha", 2);
 
 
     /* --------------------------------------------- */
@@ -353,6 +368,21 @@ int main(int argc, char** argv)
     string vertexShaderPhongSource   = readFile(p / "assets" / "shaders" / "vertexShaderPhong.vs");
     string fragmentShaderPhongSource = readFile(p / "assets" / "shaders" / "fragmentShaderPhong.fs");
     
+    Surface boxSurface; boxSurface.alpha = boxAlpha;
+    boxSurface.ka = boxKA; boxSurface.kd = boxKD; boxSurface.ks = boxKS;
+    Surface cylinderSurface; cylinderSurface.alpha = cylinderAlpha;
+    cylinderSurface.ka = cylinderKA; cylinderSurface.kd = cylinderKD; cylinderSurface.ks = cylinderKS;
+    Surface sphereSurface1; sphereSurface1.alpha = sphereAlpha1;
+    sphereSurface1.ka = sphereKA1; sphereSurface1.kd = sphereKD1; sphereSurface1.ks = sphereKS1;
+    Surface sphereSurface2; sphereSurface2.alpha = sphereAlpha2;
+    sphereSurface2.ka = sphereKA2; sphereSurface2.kd = sphereKD2; sphereSurface2.ks = sphereKS2;
+
+    // Generate Shapes
+    Box box = Box(boxWidth, boxHeight, boxDepth, boxSurface);
+    Cylinder cylinder = Cylinder(cylinderHeight, cylinderRadius, cylinderSides, cylinderSurface);
+    Sphere sphere1    = Sphere(sphereLongSegments1, sphereLatSegments1, sphereRadius1, sphereSurface1);
+    Sphere sphere2    = Sphere(sphereLongSegments2, sphereLatSegments2, sphereRadius2, sphereSurface2);
+
     // Generate shaders
     Shader &boxShader = Shader(
         vertexShaderPhongSource,
@@ -360,7 +390,8 @@ int main(int argc, char** argv)
         glm::vec3(boxTransX, boxTransY, boxTransZ),  // translation
         glm::vec3(boxRotX, boxRotY, boxRotZ),        // rotation
         glm::vec3(boxScaleX, boxScaleY, boxScaleZ),  // scale
-        glm::vec3(boxRed, boxGreen, boxBlue));       // color
+        glm::vec3(boxRed, boxGreen, boxBlue),        // color
+        box);
 
     Shader &cylinderShader = Shader(
         vertexShaderPhongSource,
@@ -368,7 +399,8 @@ int main(int argc, char** argv)
         glm::vec3(cylinderTransX, cylinderTransY, cylinderTransZ),  // translation
         glm::vec3(cylinderRotX, cylinderRotY, cylinderRotZ),        // rotation
         glm::vec3(cylinderScaleX, cylinderScaleY, cylinderScaleZ),  // scale
-        glm::vec3(cylinderRed, cylinderGreen, cylinderBlue));       // color
+        glm::vec3(cylinderRed, cylinderGreen, cylinderBlue),        // color
+        cylinder);
 
     Shader &sphereShader1 = Shader(
         vertexShaderPhongSource,
@@ -376,7 +408,8 @@ int main(int argc, char** argv)
         glm::vec3(sphereTransX1, sphereTransY1, sphereTransZ1),  // translation
         glm::vec3(sphereRotX1, sphereRotY1, sphereRotZ1),        // rotation
         glm::vec3(sphereScaleX1, sphereScaleY1, sphereScaleZ1),  // scale
-        glm::vec3(sphereRed1, sphereGreen1, sphereBlue1));       // color
+        glm::vec3(sphereRed1, sphereGreen1, sphereBlue1),       // color
+        sphere1);
 
     Shader &sphereShader2 = Shader(
         vertexShaderSource,
@@ -384,14 +417,9 @@ int main(int argc, char** argv)
         glm::vec3(sphereTransX2, sphereTransY2, sphereTransZ2),  // translation
         glm::vec3(sphereRotX2, sphereRotY2, sphereRotZ2),        // rotation
         glm::vec3(sphereScaleX2, sphereScaleY2, sphereScaleZ2),  // scale
-        glm::vec3(sphereRed2, sphereGreen2, sphereBlue2));       // color
+        glm::vec3(sphereRed2, sphereGreen2, sphereBlue2),        // color
+        sphere2);
 
-
-    // Generate Shapes
-    Box box = Box(boxWidth, boxHeight, boxDepth);
-    Cylinder cylinder = Cylinder(cylinderHeight, cylinderRadius, cylinderSides);
-    Sphere sphere1    = Sphere(sphereLongSegments1, sphereLatSegments1, sphereRadius1);
-    Sphere sphere2    = Sphere(sphereLongSegments2, sphereLatSegments2, sphereRadius2);
 
     // Create Camera and cursor
     WindowInfo windowInfo = {

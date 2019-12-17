@@ -30,3 +30,7 @@ void Shape::Draw() {
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0); // find previous bound and restore it.
 }
+
+Surface &Shape::GetSurface() {
+    return surface;
+}

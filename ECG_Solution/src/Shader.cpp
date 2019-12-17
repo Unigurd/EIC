@@ -6,7 +6,7 @@
 #include <string>
 
 // Will take the source as argument when I get around to reading them from file
-Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col) {
+Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col, Shape shape) {
     const char *vertexShaderSource = (const GLchar *)vertexShaderString.c_str();
     const char *fragmentShaderSource = (const GLchar *)fragmentShaderString.c_str();
 
@@ -60,10 +60,17 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
 	int lightDirLocation = glGetUniformLocation(shaderID, "lightDir");
 	glUniform3fv(lightDirLocation, 1, glm::value_ptr(lightDirection));
     int ambientStrengthLocation = glGetUniformLocation(shaderID, "ambientStrength");
-    glUniform1f(ambientStrengthLocation, 0.1);
-    viewProjLocation = glGetUniformLocation(shaderID, "viewProj");
 
-    viewPosLocation = glGetUniformLocation(shaderID, "viewPos");
+    viewProjLocation = glGetUniformLocation(shaderID, "viewProj");
+    viewPosLocation  = glGetUniformLocation(shaderID, "viewPos");
+
+    int kaLocation = glGetUniformLocation(shaderID, "ka");
+    int kdLocation = glGetUniformLocation(shaderID, "kd");
+    int ksLocation = glGetUniformLocation(shaderID, "ks");
+    glUniform1f(kaLocation, shape.GetSurface().ka);
+    glUniform1f(kdLocation, shape.GetSurface().kd);
+    glUniform1f(ksLocation, shape.GetSurface().ks);
+
 
     // restore previously bound shader
     glUseProgram(prevId);
