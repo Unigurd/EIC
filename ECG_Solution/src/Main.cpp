@@ -413,13 +413,13 @@ int main(int argc, char** argv)
         // poll events
 		glfwPollEvents();
         // Bind the shader of each shape and draw it
-		BindShader useBox(boxShader, camera.ViewProjMatrix());
+        BindShader useBox(boxShader, camera);
         box.Draw();
-		BindShader useCylinder(cylinderShader, camera.ViewProjMatrix());
+        BindShader useCylinder(cylinderShader, camera);
         cylinder.Draw();
-		BindShader useSphere1(sphereShader1, camera.ViewProjMatrix());
+        BindShader useSphere1(sphereShader1, camera);
         sphere1.Draw();
-		BindShader useSphere2(sphereShader2, camera.ViewProjMatrix());
+        BindShader useSphere2(sphereShader2, camera);
         sphere2.Draw();
 
         // swap buffers

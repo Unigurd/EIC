@@ -60,8 +60,10 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
 	int lightDirLocation = glGetUniformLocation(shaderID, "lightDir");
 	glUniform3fv(lightDirLocation, 1, glm::value_ptr(lightDirection));
     int ambientStrengthLocation = glGetUniformLocation(shaderID, "ambientStrength");
-    glUniform1f(ambientStrengthLocation, 0.5);
+    glUniform1f(ambientStrengthLocation, 0.1);
     viewProjLocation = glGetUniformLocation(shaderID, "viewProj");
+
+    viewPosLocation = glGetUniformLocation(shaderID, "viewPos");
 
     // restore previously bound shader
     glUseProgram(prevId);
@@ -69,6 +71,7 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
 
 unsigned int Shader::ID() { return shaderID; }
 int Shader::ViewProjLocation() { return viewProjLocation; }
+int Shader::ViewPosLocation() { return viewPosLocation; }
 
 
 
@@ -79,6 +82,16 @@ BindShader::BindShader(Shader &shader, glm::mat4 viewProjMatrix) {
     // bind new shader
     glUseProgram(shader.ID());
     glUniformMatrix4fv(shader.ViewProjLocation(), 1, GL_FALSE, glm::value_ptr(viewProjMatrix));
+}
+
+BindShader::BindShader(Shader &shader, Camera &camera) {
+    // get previously bound shader to restore later
+    glGetIntegerv(GL_CURRENT_PROGRAM,&prevId);
+
+    // bind new shader
+    glUseProgram(shader.ID());
+    glUniformMatrix4fv(shader.ViewProjLocation(), 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
+    glUniform4fv(shader.ViewPosLocation(), 1, glm::value_ptr(camera.ViewPosMatrix()));
 }
 
 // Restore previously used program when binding goes out of scope
