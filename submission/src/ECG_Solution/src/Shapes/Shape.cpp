@@ -11,15 +11,17 @@ void Shape::initVAO() {
     // ..:: Initialization code :: ..
     // 1. bind Vertex Array Object
     glBindVertexArray(VAO);
-    // 2. copy our vertices array in a vertex buffer for OpenGL to use
+    // 2. copy our vertices array into a vertex buffer for OpenGL to use
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), &vertices[0], GL_STATIC_DRAW);
-    // 3. copy our index array in a element buffer for OpenGL to use
+    // 3. copy our index array into an element buffer for OpenGL to use
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
     // 4. then set the vertex attributes pointers
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0 * sizeof(float)));
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 }
 void Shape::Draw() {
     glPointSize(5.0f); // tmp line, remove
@@ -28,3 +30,7 @@ void Shape::Draw() {
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0); // find previous bound and restore it.
 }
+
+Surface &Shape::GetSurface() { return surface; }
+Transformation &Shape::GetTransformation() { return transformation; }
+glm::vec3 Shape::Color() { return color; }

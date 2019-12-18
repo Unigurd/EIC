@@ -21,6 +21,7 @@ private:
 public:
     Camera(float fov, int height, int width, float zNear, float zFar);
     glm::mat4 ViewProjMatrix();
+    glm::vec4 ViewPosMatrix();
     void translate(glm::vec3 trans);
     void rotate(glm::vec3 rot);
     void toggleBackfaceCulling();

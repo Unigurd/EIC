@@ -1,5 +1,5 @@
 #include "Camera.hpp"
-
+#include <iostream>
 
 Camera::Camera(float fov, int height, int width, float zNear, float zFar) {
     float aspect = (float)width / (float)height;
@@ -49,6 +49,13 @@ glm::mat4 Camera::ViewProjMatrix(){
     return viewProj;
 }
 
+glm::vec4 Camera::ViewPosMatrix(){
+    //glm::vec4 bla = glm::inverse(ViewProjMatrix()) * glm::vec4(1.0, 1.0, 1.0, 1.0);
+    glm::mat4 vp = glm::inverse(ViewProjMatrix());
+    glm::vec4 bla = glm::vec4(vp[3][0], vp[3][1], vp[3][2], 0.0);
+    return  bla;
+    //return glm::vec4(1.0, 1.0, 1.0, 1.0);
+}
 void Camera::toggleBackfaceCulling() {
     if (backfaceCulling = backfaceCulling != true) { glEnable(GL_CULL_FACE); }
     else { glDisable(GL_CULL_FACE); }

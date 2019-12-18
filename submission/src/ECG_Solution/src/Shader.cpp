@@ -5,9 +5,8 @@
 #include "glm/ext.hpp"
 #include <string>
 
-// Will take the source as argument when I get around to reading them from file
-Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col) {
-    const char *vertexShaderSource = (const GLchar *)vertexShaderString.c_str();
+Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString, Shape shape, Lights lights) {
+    const char *vertexShaderSource   = (const GLchar *)vertexShaderString.c_str();
     const char *fragmentShaderSource = (const GLchar *)fragmentShaderString.c_str();
 
     // get previously bound shader to restore later
@@ -36,22 +35,56 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
+    // get the transformations from the shape
+    Transformation trans = shape.GetTransformation();
+
     // Build the model matrix from the arguments
-    glm::mat4 translate = glm::translate(glm::mat4(1.0f), pos);
-    glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[0]), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[1]), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * rot[2]), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 translate = glm::translate(glm::mat4(1.0f), trans.translation);
+    glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * trans.rotation[0]), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * trans.rotation[1]), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), glm::radians(360.0f * trans.rotation[2]), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 rotation = rotationZ * rotationY * rotationX;
-    glm::mat4 scale = glm::scale(glm::mat4(1.0f), sca);
+    glm::mat4 scale = glm::scale(glm::mat4(1.0f), trans.scaling);
 	glm::mat4 model = translate * rotation * scale;
 
-    // Set the model and color uniforms in the shader program
+    // Separate the two lights
+    DirectionLight &dirLight = lights.dirLight;
+    PointLight &pointLight   = lights.pointLight;
+
     glUseProgram(shaderID);
+
+    // Set uniforms related to translating between spaces
+    viewProjLocation  = glGetUniformLocation(shaderID, "viewProj");
+    cameraPosLocation = glGetUniformLocation(shaderID, "cameraPos");
 	int modelLocation = glGetUniformLocation(shaderID, "model");
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+
+    // Set object uniforms
 	int colorLocation = glGetUniformLocation(shaderID, "color");
-	glUniform3fv(colorLocation, 1, glm::value_ptr(col));
-    viewProjLocation = glGetUniformLocation(shaderID, "viewProj");
+    int kaLocation    = glGetUniformLocation(shaderID, "ka");
+    int kdLocation    = glGetUniformLocation(shaderID, "kd");
+    int ksLocation    = glGetUniformLocation(shaderID, "ks");
+    int alphaLocation = glGetUniformLocation(shaderID, "alpha");
+	glUniform3fv(colorLocation, 1, glm::value_ptr(shape.Color()));
+    glUniform1f(kaLocation, shape.GetSurface().ka);
+    glUniform1f(kdLocation, shape.GetSurface().kd);
+    glUniform1f(ksLocation, shape.GetSurface().ks);
+    glUniform1i(alphaLocation, shape.GetSurface().alpha);
+
+
+    // Set the directional light uniforms
+	int dirLightColorLocation = glGetUniformLocation(shaderID, "dirLightColor");
+	int dirLightDirLocation   = glGetUniformLocation(shaderID, "dirLightDir");
+	glUniform3fv(dirLightColorLocation, 1, glm::value_ptr(dirLight.color));
+	glUniform3fv(dirLightDirLocation, 1, glm::value_ptr(dirLight.direction));
+
+    // Set the point light uniforms 
+	int pointLightColorLocation = glGetUniformLocation(shaderID, "pointLightColor");
+	int pointLightPosLocation   = glGetUniformLocation(shaderID, "pointLightPos");
+	int attenuationLocation     = glGetUniformLocation(shaderID, "attenuation");
+	glUniform3fv(pointLightColorLocation, 1, glm::value_ptr(pointLight.color));
+	glUniform3fv(pointLightPosLocation, 1, glm::value_ptr(pointLight.position));
+	glUniform3fv(attenuationLocation, 1, glm::value_ptr(pointLight.attenuation));
 
     // restore previously bound shader
     glUseProgram(prevId);
@@ -59,6 +92,7 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
 
 unsigned int Shader::ID() { return shaderID; }
 int Shader::ViewProjLocation() { return viewProjLocation; }
+int Shader::CameraPosLocation() { return cameraPosLocation; }
 
 
 
@@ -69,6 +103,16 @@ BindShader::BindShader(Shader &shader, glm::mat4 viewProjMatrix) {
     // bind new shader
     glUseProgram(shader.ID());
     glUniformMatrix4fv(shader.ViewProjLocation(), 1, GL_FALSE, glm::value_ptr(viewProjMatrix));
+}
+
+BindShader::BindShader(Shader &shader, Camera &camera) {
+    // get previously bound shader to restore later
+    glGetIntegerv(GL_CURRENT_PROGRAM,&prevId);
+
+    // bind new shader
+    glUseProgram(shader.ID());
+    glUniformMatrix4fv(shader.ViewProjLocation(), 1, GL_FALSE, glm::value_ptr(camera.ViewProjMatrix()));
+    glUniform4fv(shader.CameraPosLocation(), 1, glm::value_ptr(camera.ViewPosMatrix()));
 }
 
 // Restore previously used program when binding goes out of scope
