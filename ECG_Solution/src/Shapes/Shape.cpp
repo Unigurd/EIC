@@ -31,6 +31,6 @@ void Shape::Draw() {
     glBindVertexArray(0); // find previous bound and restore it.
 }
 
-Surface &Shape::GetSurface() {
-    return surface;
-}
+Surface &Shape::GetSurface() { return surface; }
+Transformation &Shape::GetTransformation() { return transformation; }
+glm::vec3 Shape::Color() { return color; }

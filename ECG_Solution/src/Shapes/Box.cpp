@@ -4,8 +4,10 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-Box::Box(float width, float height, float depth, Surface srfc) {
+Box::Box(float width, float height, float depth, Surface srfc, Transformation trans, glm::vec3 col) {
     surface = srfc;
+    color = col;
+    transformation = trans;
     // The corners of the box
     float vs[] = {
          // x-axis normals

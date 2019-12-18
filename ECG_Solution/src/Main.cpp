@@ -344,7 +344,7 @@ int main(int argc, char** argv)
             EXIT_WITH_ERROR("Failed to init openGL context or open window")
         }
 
-        // set the callbacks
+        // Set the callbacks
         glfwSetKeyCallback(window, key_callback);
         glfwSetCursorPosCallback(window, cursor_position_callback);
         glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -381,19 +381,23 @@ int main(int argc, char** argv)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
+    // Create the point light
     PointLight pointLight;
     pointLight.color = glm::vec3(pointLightRed, pointLightGreen, pointLightBlue);
     pointLight.position = glm::vec3(pointLightTransX, pointLightTransY, pointLightTransZ);
     pointLight.attenuation = glm::vec3(pointLightAttQuad, pointLightAttLin, pointLightAttConst);
 
+    // Create the directional light
     DirectionLight dirLight;
     dirLight.color = glm::vec3(dirLightRed, dirLightGreen, dirLightBlue);
     dirLight.direction = glm::vec3(dirLightDirX, dirLightDirY, dirLightDirZ);
 
+    // Bundle the two lights together to be used as argument to the shaders
     Lights lights;
     lights.dirLight  = dirLight;
     lights.pointLight = pointLight;
 
+    // Specify the properties of the surfaces of the four objects
     Surface boxSurface; boxSurface.alpha = boxAlpha;
     boxSurface.ka = boxKA; boxSurface.kd = boxKD; boxSurface.ks = boxKS;
     Surface cylinderSurface; cylinderSurface.alpha = cylinderAlpha;
@@ -403,11 +407,37 @@ int main(int argc, char** argv)
     Surface sphereSurface2; sphereSurface2.alpha = sphereAlpha2;
     sphereSurface2.ka = sphereKA2; sphereSurface2.kd = sphereKD2; sphereSurface2.ks = sphereKS2;
 
+    // Transforations of each object
+    Transformation boxTransformation;
+    boxTransformation.translation = glm::vec3(boxTransX, boxTransY, boxTransZ);
+    boxTransformation.rotation = glm::vec3(boxRotX, boxRotY, boxRotZ);
+    boxTransformation.scaling = glm::vec3(boxScaleX, boxScaleY, boxScaleZ);
+
+    Transformation cylinderTransformation;
+    cylinderTransformation.translation = glm::vec3(cylinderTransX, cylinderTransY, cylinderTransZ);
+    cylinderTransformation.rotation = glm::vec3(cylinderRotX, cylinderRotY, cylinderRotZ);
+    cylinderTransformation.scaling = glm::vec3(cylinderScaleX, cylinderScaleY, cylinderScaleZ);
+
+    Transformation sphereTransformation1;
+    sphereTransformation1.translation = glm::vec3(sphereTransX1, sphereTransY1, sphereTransZ1);
+    sphereTransformation1.rotation = glm::vec3(sphereRotX1, sphereRotY1, sphereRotZ1);
+    sphereTransformation1.scaling = glm::vec3(sphereScaleX1, sphereScaleY1, sphereScaleZ1);
+
+    Transformation sphereTransformation2;
+    sphereTransformation2.translation = glm::vec3(sphereTransX2, sphereTransY2, sphereTransZ2);
+    sphereTransformation2.rotation = glm::vec3(sphereRotX2, sphereRotY2, sphereRotZ2);
+    sphereTransformation2.scaling = glm::vec3(sphereScaleX2, sphereScaleY2, sphereScaleZ2);
+
+    glm::vec3 boxColor = glm::vec3(boxRed, boxGreen, boxBlue);
+    glm::vec3 cylinderColor = glm::vec3(cylinderRed, cylinderGreen, cylinderBlue);
+    glm::vec3 sphereColor1 = glm::vec3(sphereRed1, sphereGreen1, sphereBlue1);
+    glm::vec3 sphereColor2 = glm::vec3(sphereRed2, sphereGreen2, sphereBlue2);
+
     // Generate Shapes
-    Box box = Box(boxWidth, boxHeight, boxDepth, boxSurface);
-    Cylinder cylinder = Cylinder(cylinderHeight, cylinderRadius, cylinderSides, cylinderSurface);
-    Sphere sphere1    = Sphere(sphereLongSegments1, sphereLatSegments1, sphereRadius1, sphereSurface1);
-    Sphere sphere2    = Sphere(sphereLongSegments2, sphereLatSegments2, sphereRadius2, sphereSurface2);
+    Box box           = Box(boxWidth, boxHeight, boxDepth, boxSurface, boxTransformation, boxColor);
+    Cylinder cylinder = Cylinder(cylinderHeight, cylinderRadius, cylinderSides, cylinderSurface, cylinderTransformation, cylinderColor);
+    Sphere sphere1    = Sphere(sphereLongSegments1, sphereLatSegments1, sphereRadius1, sphereSurface1, sphereTransformation1, sphereColor1);
+    Sphere sphere2    = Sphere(sphereLongSegments2, sphereLatSegments2, sphereRadius2, sphereSurface2, sphereTransformation2, sphereColor2);
 
 
     // Read shaders
@@ -421,37 +451,21 @@ int main(int argc, char** argv)
     Shader &boxShader = Shader(
         vertexShaderPhongSource,
         fragmentShaderPhongSource,
-        glm::vec3(boxTransX, boxTransY, boxTransZ),  // translation
-        glm::vec3(boxRotX, boxRotY, boxRotZ),        // rotation
-        glm::vec3(boxScaleX, boxScaleY, boxScaleZ),  // scale
-        glm::vec3(boxRed, boxGreen, boxBlue),        // color
         box, lights);
 
     Shader &cylinderShader = Shader(
         vertexShaderPhongSource,
         fragmentShaderPhongSource,
-        glm::vec3(cylinderTransX, cylinderTransY, cylinderTransZ),  // translation
-        glm::vec3(cylinderRotX, cylinderRotY, cylinderRotZ),        // rotation
-        glm::vec3(cylinderScaleX, cylinderScaleY, cylinderScaleZ),  // scale
-        glm::vec3(cylinderRed, cylinderGreen, cylinderBlue),        // color
         cylinder, lights);
 
     Shader &sphereShader1 = Shader(
         vertexShaderPhongSource,
         fragmentShaderPhongSource,
-        glm::vec3(sphereTransX1, sphereTransY1, sphereTransZ1),  // translation
-        glm::vec3(sphereRotX1, sphereRotY1, sphereRotZ1),        // rotation
-        glm::vec3(sphereScaleX1, sphereScaleY1, sphereScaleZ1),  // scale
-        glm::vec3(sphereRed1, sphereGreen1, sphereBlue1),       // color
         sphere1, lights);
 
     Shader &sphereShader2 = Shader(
         vertexShaderGouraudSource,
         fragmentShaderGouraudSource,
-        glm::vec3(sphereTransX2, sphereTransY2, sphereTransZ2),  // translation
-        glm::vec3(sphereRotX2, sphereRotY2, sphereRotZ2),        // rotation
-        glm::vec3(sphereScaleX2, sphereScaleY2, sphereScaleZ2),  // scale
-        glm::vec3(sphereRed2, sphereGreen2, sphereBlue2),        // color
         sphere2, lights);
 
 

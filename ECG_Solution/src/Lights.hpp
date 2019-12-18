@@ -15,6 +15,7 @@ struct DirectionLight {
     glm::vec3 direction;
 };
 
+// Bundle the two lights twogether for moving them about together easier
 struct Lights {
     PointLight pointLight;
     DirectionLight dirLight;

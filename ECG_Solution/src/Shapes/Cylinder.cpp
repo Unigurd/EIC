@@ -5,8 +5,10 @@
 #include <iostream>
 
 
-Cylinder::Cylinder(float height, float radius, unsigned int sides, Surface srfc) {
+Cylinder::Cylinder(float height, float radius, unsigned int sides, Surface srfc, Transformation trans, glm::vec3 col) {
     surface = srfc;
+    color = col;
+    transformation = trans;
     // top and bottom middle vertices + normals
     float vs[] = {
         0.0f, height/2.0f, 0.0f,

@@ -7,8 +7,10 @@
 
 
 
-Sphere::Sphere(unsigned int longSegments, unsigned int latSegments, float radius, Surface srfc) {
+Sphere::Sphere(unsigned int longSegments, unsigned int latSegments, float radius, Surface srfc, Transformation trans, glm::vec3 col) {
     surface = srfc;
+    color = col;
+    transformation = trans;
     // Top and bottom vertex are special cases
     float vs[] = {
         0.0, radius, 0.0, 
