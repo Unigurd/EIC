@@ -24,7 +24,6 @@ void main()
     vec3 norm = mat3(transpose(inverse(model))) * aNorm;
     vec3 fragPos = vec3(model * vec4(aPos, 1));
 
-    vec3 ambient = ka * dirLightColor;
     vec3 viewDir = normalize(cameraPos.xyz - fragPos);
 
     float dirDiff = max(dot(normalize(norm), -normalize(dirLightDir)), 0.0);
@@ -34,7 +33,7 @@ void main()
     float dirSpec = pow(max(dot(viewDir, dirReflectDir), 0.0), alpha);
     float dirSpecular = ks * dirSpec;
 
-    vec3 dirTotal = (dirDiffuse + dirSpecular)  * dirLightColor;
+    vec3 dirTotal =  (ka + dirSpecular + (dirDiffuse * color))  * dirLightColor;
 
     vec3 pointLightDir = normalize(fragPos - pointLightPos);
     float d = length(pointLightDir);
@@ -47,8 +46,8 @@ void main()
     float pointSpec = pow(max(dot(viewDir, pointReflectDir), 0.0), alpha);
     float pointSpecular = att * ks * pointSpec;
 
-    vec3 pointTotal = (pointDiffuse + pointSpecular)  * pointLightColor;
+    vec3 pointTotal = (pointSpecular + (pointDiffuse * color)) * pointLightColor;
 
-    vec3 result = (ambient + dirTotal + pointTotal) * color;
+    vec3 result = (dirTotal + pointTotal);
     FragColor1 = vec4(result, 1.0);
 }

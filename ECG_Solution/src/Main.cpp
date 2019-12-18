@@ -247,15 +247,15 @@ int main(int argc, char** argv)
     float boxRed    = (float)reader.GetReal("box", "red", 1.0);
     float boxGreen  = (float)reader.GetReal("box", "green", 1.0);
     float boxBlue   = (float)reader.GetReal("box", "blue", 1.0);
-    float boxKA     = (float)reader.GetReal("box", "ka", 1);
-    float boxKD     = (float)reader.GetReal("box", "kd", 1);
-    float boxKS     = (float)reader.GetReal("box", "ks", 1);
-    int boxAlpha    = reader.GetInteger("box", "alpha", 2);
+    float boxKA     = (float)reader.GetReal("box", "ka", 10);
+    float boxKD     = (float)reader.GetReal("box", "kd", 10);
+    float boxKS     = (float)reader.GetReal("box", "ks", 10);
+    int boxAlpha    =     reader.GetInteger("box", "alpha", 2);
 
     // cylinder
     float cylinderHeight       = (float)reader.GetReal("cylinder", "height", 50.0);
     float cylinderRadius       = (float)reader.GetReal("cylinder", "radius", 50.0);
-    unsigned int cylinderSides = reader.GetInteger("cylinder", "sides", 50);
+    unsigned int cylinderSides =     reader.GetInteger("cylinder", "sides", 50);
     float cylinderTransX       = (float)reader.GetReal("cylinder", "transX", 50.0);
     float cylinderTransY       = (float)reader.GetReal("cylinder", "transY", 50.0);
     float cylinderTransZ       = (float)reader.GetReal("cylinder", "transZ", 50.0);
@@ -268,10 +268,10 @@ int main(int argc, char** argv)
     float cylinderRed          = (float)reader.GetReal("cylinder", "red", 1.0);
     float cylinderGreen        = (float)reader.GetReal("cylinder", "green", 1.0);
     float cylinderBlue         = (float)reader.GetReal("cylinder", "blue", 1.0);
-    float cylinderKA           = (float)reader.GetReal("cylinder", "ka", 1);
-    float cylinderKD           = (float)reader.GetReal("cylinder", "kd", 1);
-    float cylinderKS           = (float)reader.GetReal("cylinder", "ks", 1);
-    int cylinderAlpha          = reader.GetInteger("cylinder", "alpha", 2);
+    float cylinderKA           = (float)reader.GetReal("cylinder", "ka", 10);
+    float cylinderKD           = (float)reader.GetReal("cylinder", "kd", 10);
+    float cylinderKS           = (float)reader.GetReal("cylinder", "ks", 10);
+    int cylinderAlpha          =     reader.GetInteger("cylinder", "alpha", 2);
 
     // sphere1
     unsigned int sphereLongSegments1 = reader.GetInteger("sphere1", "longSegments", 50);
@@ -289,9 +289,9 @@ int main(int argc, char** argv)
     float sphereRed1                 = (float)reader.GetReal("sphere1", "red", 1.0);
     float sphereGreen1               = (float)reader.GetReal("sphere1", "green", 1.0);
     float sphereBlue1                = (float)reader.GetReal("sphere1", "blue", 1.0);
-    float sphereKA1                  = (float)reader.GetReal("sphere1", "ka", 1);
-    float sphereKD1                  = (float)reader.GetReal("sphere1", "kd", 1);
-    float sphereKS1                  = (float)reader.GetReal("sphere1", "ks", 1);
+    float sphereKA1                  = (float)reader.GetReal("sphere1", "ka", 10);
+    float sphereKD1                  = (float)reader.GetReal("sphere1", "kd", 10);
+    float sphereKS1                  = (float)reader.GetReal("sphere1", "ks", 10);
     int sphereAlpha1                 = reader.GetInteger("sphere1", "alpha", 2);
 
     // sphere2
@@ -310,10 +310,10 @@ int main(int argc, char** argv)
     float sphereRed2                 = (float)reader.GetReal("sphere2", "red", 1.0);
     float sphereGreen2               = (float)reader.GetReal("sphere2", "green", 1.0);
     float sphereBlue2                = (float)reader.GetReal("sphere2", "blue", 1.0);
-    float sphereKA2                  = (float)reader.GetReal("sphere2", "ka", 2);
-    float sphereKD2                  = (float)reader.GetReal("sphere2", "kd", 2);
-    float sphereKS2                  = (float)reader.GetReal("sphere2", "ks", 2);
-    int sphereAlpha2                 = reader.GetInteger("sphere2", "alpha", 2);
+    float sphereKA2                  = (float)reader.GetReal("sphere2", "ka", 20);
+    float sphereKD2                  = (float)reader.GetReal("sphere2", "kd", 20);
+    float sphereKS2                  = (float)reader.GetReal("sphere2", "ks", 20);
+    int sphereAlpha2                 =     reader.GetInteger("sphere2", "alpha", 20);
 
 
     /* --------------------------------------------- */
