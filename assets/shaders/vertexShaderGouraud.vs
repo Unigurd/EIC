@@ -38,7 +38,7 @@ void main()
 
     vec3 pointLightDir = normalize(fragPos - pointLightPos);
     float d = length(pointLightDir);
-    float att = attenuation.z + d * attenuation.y + pow(d, 2) * attenuation.x;
+    float att = 1 / (attenuation.z + d * attenuation.y + pow(d, 2) * attenuation.x);
 
     float pointDiff = max(dot(normalize(norm), -normalize(pointLightDir)), 0.0);
     float pointDiffuse = att * kd * pointDiff;
