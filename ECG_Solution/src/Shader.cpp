@@ -6,7 +6,7 @@
 #include <string>
 
 // Will take the source as argument when I get around to reading them from file
-Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col, Shape shape) {
+Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col, Shape shape, Lights lights) {
     const char *vertexShaderSource = (const GLchar *)vertexShaderString.c_str();
     const char *fragmentShaderSource = (const GLchar *)fragmentShaderString.c_str();
 
@@ -45,13 +45,8 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
     glm::mat4 scale = glm::scale(glm::mat4(1.0f), sca);
 	glm::mat4 model = translate * rotation * scale;
 
-    // tmp stuff
-    glm::vec3 lightColor = glm::vec3(1.0, 1.0, 1.0);
-    glm::vec3 lightDirection = glm::vec3(0.0, -1.0, -1.0);
-    glm::vec3 lightPos = glm::vec3(0.0, 0.0, 0.0);
-    float attConst = 1.0;
-    float attLin = 0.4;
-    float attQuad = 0.1;
+    DirectionLight &dirLight = lights.dirLight;
+    PointLight &pointLight   = lights.pointLight;
 
     // Set the model and color uniforms in the shader program
     glUseProgram(shaderID);
@@ -61,21 +56,17 @@ Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString,
 	glUniform3fv(colorLocation, 1, glm::value_ptr(col));
 
 	int dirLightColorLocation = glGetUniformLocation(shaderID, "dirLightColor");
-	glUniform3fv(dirLightColorLocation, 1, glm::value_ptr(lightColor));
+	glUniform3fv(dirLightColorLocation, 1, glm::value_ptr(dirLight.color));
 	int dirLightDirLocation = glGetUniformLocation(shaderID, "dirLightDir");
-	glUniform3fv(dirLightDirLocation, 1, glm::value_ptr(lightDirection));
+	glUniform3fv(dirLightDirLocation, 1, glm::value_ptr(dirLight.direction));
 
 	int pointLightColorLocation = glGetUniformLocation(shaderID, "pointLightColor");
-	glUniform3fv(pointLightColorLocation, 1, glm::value_ptr(lightColor));
+	glUniform3fv(pointLightColorLocation, 1, glm::value_ptr(pointLight.color));
 	int pointLightPosLocation = glGetUniformLocation(shaderID, "pointLightPos");
-	glUniform3fv(pointLightPosLocation, 1, glm::value_ptr(lightPos));
+	glUniform3fv(pointLightPosLocation, 1, glm::value_ptr(pointLight.position));
 
-	int attConstLocation = glGetUniformLocation(shaderID, "attConst");
-	glUniform1f(attConstLocation, attConst);
-	int attLinLocation = glGetUniformLocation(shaderID, "attLin");
-	glUniform1f(attLinLocation, attLin);
-	int attQuadLocation = glGetUniformLocation(shaderID, "attQuad");
-	glUniform1f(attQuadLocation, attQuad);
+	int attenuationLocation = glGetUniformLocation(shaderID, "attenuation");
+	glUniform3fv(attenuationLocation, 1, glm::value_ptr(pointLight.attenuation));
 
     viewProjLocation = glGetUniformLocation(shaderID, "viewProj");
     cameraPosLocation  = glGetUniformLocation(shaderID, "cameraPos");

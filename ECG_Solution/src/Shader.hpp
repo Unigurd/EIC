@@ -7,6 +7,7 @@
 #include "glm/ext.hpp"
 #include "Camera.hpp"
 #include "Shapes\Shape.hpp"
+#include "Lights.hpp"
 
 class Shader {
 private:
@@ -15,7 +16,7 @@ private:
     int cameraPosLocation;
 public:
     // TODO move rest of shape-related parameters into the Shape
-    Shader(std::string vertexShaderString, std::string fragmentShaderString, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col, Shape shape);
+    Shader(std::string vertexShaderString, std::string fragmentShaderString, glm::vec3 pos, glm::vec3 rot, glm::vec3 sca, glm::vec3 col, Shape shape, Lights lights);
     unsigned int ID();
     int ViewProjLocation();
     int CameraPosLocation();

@@ -18,21 +18,14 @@ void main()
 {
     vec3 ambient = ka * dirLightColor;
 
-    float diff = max(dot(normalize(norm), -normalize(dirLightDir)), 0.0);
-    vec3 diffuse = kd * diff * dirLightColor;
+    float dirDiff = max(dot(normalize(norm), -normalize(dirLightDir)), 0.0);
+    vec3 dirDiffuse = kd * dirDiff * dirLightColor;
 
     vec3 viewDir = normalize(cameraPos.xyz - fragPos);
-    vec3 reflectDir = reflect(normalize(dirLightDir), normalize(norm));
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), alpha);
-    vec3 specular = ks * spec * dirLightColor;  
-    //float specularStrength = 0.8;
-    //vec3 viewDir = normalize(viewPos.xyz - fragPos);
-    //vec3 reflectDir = normalize(reflect(normalize(viewLightDir), normalize(norm)));
-    //float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    //vec3 specular = specularStrength * spec * lightColor;  
+    vec3 dirReflectDir = reflect(normalize(dirLightDir), normalize(norm));
+    float dirSpec = pow(max(dot(viewDir, dirReflectDir), 0.0), alpha);
+    vec3 dirSpecular = ks * dirSpec * dirLightColor;  
 
-    //vec3 result = (specular) * color;
-    vec3 result = (ambient + diffuse + specular) * color;
-    //vec3 result = (ambient + diffuse) * color;
+    vec3 result = (ambient + dirDiffuse + dirSpecular) * color;
     FragColor = vec4(result, 1.0);
 }

@@ -1,7 +1,8 @@
 #version 430 core
-
-in vec3 norm;
-in vec3 fragPos;
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aNorm;
+uniform mat4 model;
+uniform mat4 viewProj;
 
 uniform vec3 color;
 uniform vec3 dirColor;
@@ -16,10 +17,13 @@ uniform float ks;
 uniform int alpha;
 uniform vec3 attenuation;
 
-out vec4 FragColor;
-
+out vec4 FragColor1;
 void main()
 {
+    gl_Position = viewProj * model * vec4(aPos,1);
+    vec3 norm = mat3(transpose(inverse(model))) * aNorm;
+    vec3 fragPos = vec3(model * vec4(aPos, 1));
+
     vec3 ambient = ka * dirLightColor;
     vec3 viewDir = normalize(cameraPos.xyz - fragPos);
 
@@ -46,5 +50,5 @@ void main()
     vec3 pointTotal = (pointDiffuse + pointSpecular)  * pointLightColor;
 
     vec3 result = (ambient + dirTotal + pointTotal) * color;
-    FragColor = vec4(result, 1.0);
+    FragColor1 = vec4(result, 1.0);
 }

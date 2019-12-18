@@ -4,7 +4,7 @@ in vec3 norm;
 in vec3 fragPos;
 
 uniform vec3 color;
-uniform vec3 dirLightDir;
+uniform vec3 dirLightDir; // can probably be deleted
 uniform vec3 pointLightColor;
 uniform vec3 pointLightPos;
 uniform vec4 cameraPos;
@@ -20,31 +20,20 @@ out vec4 FragColor;
 
 void main()
 {
-    
     vec3 ambient = ka * pointLightColor;
 
-    vec3 posLightDir = normalize(fragPos - pointLightPos);
-    //vec3 posLightDir = normalize(pointLightPos - fragPos);
-    float d = length(posLightDir);
+    vec3 pointLightDir = normalize(fragPos - pointLightPos);
+    float d = length(pointLightDir);
     float attenuation = attConst + d * attLin + pow(d, 2) * attQuad;
 
-    float diff = max(dot(normalize(norm), -normalize(posLightDir)), 0.0);
-    vec3 diffuse = attenuation * kd * diff * pointLightColor;
+    float pointDiff = max(dot(normalize(norm), -normalize(pointLightDir)), 0.0);
+    vec3 pointDiffuse = attenuation * kd * pointDiff * pointLightColor;
 
     vec3 viewDir = normalize(cameraPos.xyz - fragPos);
-    vec3 reflectDir = reflect(normalize(posLightDir), normalize(norm));
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), alpha);
-    vec3 specular = attenuation * ks * spec * pointLightColor;  
-    //float specularStrength = 0.8;
-    //vec3 viewDir = normalize(viewPos.xyz - fragPos);
-    //vec3 reflectDir = normalize(reflect(normalize(viewLightDir), normalize(norm)));
-    //float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-    //vec3 specular = specularStrength * spec * lightColor;  
+    vec3 pointReflectDir = reflect(normalize(pointLightDir), normalize(norm));
+    float pointSpec = pow(max(dot(viewDir, pointReflectDir), 0.0), alpha);
+    vec3 pointSpecular = attenuation * ks * pointSpec * pointLightColor;  
 
-    //vec3 result = ambient * color;
-    //vec3 result = diffuse * color;
-    //vec3 result = specular * color;
-    vec3 result = (ambient + diffuse + specular) * color;
-    //vec3 result = (ambient + diffuse) * color;
+    vec3 result = (ambient + pointDiffuse + pointSpecular) * color;
     FragColor = vec4(result, 1.0);
 }

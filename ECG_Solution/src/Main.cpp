@@ -21,6 +21,7 @@
 #include "Shapes/Box.hpp"
 #include "Shapes/Cylinder.hpp"
 #include "Shapes/Sphere.hpp"
+#include "Lights.hpp"
 
 /* --------------------------------------------- */
 // Callbacks
@@ -211,6 +212,25 @@ int main(int argc, char** argv)
     float zNear                  = (float)reader.GetReal("camera", "near", 0.5);
     float zFar                   = (float)reader.GetReal("camera", "far", 50.0);
 
+    // directional light
+    float dirLightRed   = (float)reader.GetReal("directionalLight", "red", 50.0);
+    float dirLightGreen = (float)reader.GetReal("directionalLight", "green", 50.0);
+    float dirLightBlue  = (float)reader.GetReal("directionalLight", "blue", 50.0);
+    float dirLightDirX  = (float)reader.GetReal("directionalLight", "dirX", 50.0);
+    float dirLightDirY  = (float)reader.GetReal("directionalLight", "dirY", 50.0);
+    float dirLightDirZ  = (float)reader.GetReal("directionalLight", "dirZ", 50.0);
+
+    // point light
+    float pointLightRed      = (float)reader.GetReal("pointLight", "red", 50.0);
+    float pointLightGreen    = (float)reader.GetReal("pointLight", "green", 50.0);
+    float pointLightBlue     = (float)reader.GetReal("pointLight", "blue", 50.0);
+    float pointLightTransX   = (float)reader.GetReal("pointLight", "transX", 50.0);
+    float pointLightTransY   = (float)reader.GetReal("pointLight", "transY", 50.0);
+    float pointLightTransZ   = (float)reader.GetReal("pointLight", "transZ", 50.0);
+    float pointLightAttConst = (float)reader.GetReal("pointLight", "attenuationConst", 50.0);
+    float pointLightAttLin   = (float)reader.GetReal("pointLight", "attenuationLin", 50.0);
+    float pointLightAttQuad  = (float)reader.GetReal("pointLight", "attenuationQuad", 50.0);
+
     // box
     float boxWidth  = (float)reader.GetReal("box", "width", 50.0);
     float boxHeight = (float)reader.GetReal("box", "height", 50.0);
@@ -361,13 +381,19 @@ int main(int argc, char** argv)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    // Read shaders
-    std::filesystem::path p = "";
-    string vertexShaderSource        = readFile(p / "assets" / "shaders" / "vertexShader.vs");
-    string fragmentShaderSource      = readFile(p / "assets" / "shaders" / "fragmentShader.fs");
-    string vertexShaderPhongSource   = readFile(p / "assets" / "shaders" / "vertexShaderPointPhong.vs");
-    string fragmentShaderPhongSource = readFile(p / "assets" / "shaders" / "fragmentShaderPointPhong.fs");
-    
+    PointLight pointLight;
+    pointLight.color = glm::vec3(pointLightRed, pointLightGreen, pointLightBlue);
+    pointLight.position = glm::vec3(pointLightTransX, pointLightTransY, pointLightTransZ);
+    pointLight.attenuation = glm::vec3(pointLightAttQuad, pointLightAttLin, pointLightAttConst);
+
+    DirectionLight dirLight;
+    dirLight.color = glm::vec3(dirLightRed, dirLightGreen, dirLightBlue);
+    dirLight.direction = glm::vec3(dirLightDirX, dirLightDirY, dirLightDirZ);
+
+    Lights lights;
+    lights.dirLight  = dirLight;
+    lights.pointLight = pointLight;
+
     Surface boxSurface; boxSurface.alpha = boxAlpha;
     boxSurface.ka = boxKA; boxSurface.kd = boxKD; boxSurface.ks = boxKS;
     Surface cylinderSurface; cylinderSurface.alpha = cylinderAlpha;
@@ -383,6 +409,14 @@ int main(int argc, char** argv)
     Sphere sphere1    = Sphere(sphereLongSegments1, sphereLatSegments1, sphereRadius1, sphereSurface1);
     Sphere sphere2    = Sphere(sphereLongSegments2, sphereLatSegments2, sphereRadius2, sphereSurface2);
 
+
+    // Read shaders
+    std::filesystem::path p = "";
+    string vertexShaderGouraudSource   = readFile(p / "assets" / "shaders" / "vertexShaderGouraud.vs");
+    string fragmentShaderGouraudSource = readFile(p / "assets" / "shaders" / "fragmentShaderGouraud.fs");
+    string vertexShaderPhongSource     = readFile(p / "assets" / "shaders" / "vertexShaderPhong.vs");
+    string fragmentShaderPhongSource   = readFile(p / "assets" / "shaders" / "fragmentShaderPhong.fs");
+    
     // Generate shaders
     Shader &boxShader = Shader(
         vertexShaderPhongSource,
@@ -391,7 +425,7 @@ int main(int argc, char** argv)
         glm::vec3(boxRotX, boxRotY, boxRotZ),        // rotation
         glm::vec3(boxScaleX, boxScaleY, boxScaleZ),  // scale
         glm::vec3(boxRed, boxGreen, boxBlue),        // color
-        box);
+        box, lights);
 
     Shader &cylinderShader = Shader(
         vertexShaderPhongSource,
@@ -400,7 +434,7 @@ int main(int argc, char** argv)
         glm::vec3(cylinderRotX, cylinderRotY, cylinderRotZ),        // rotation
         glm::vec3(cylinderScaleX, cylinderScaleY, cylinderScaleZ),  // scale
         glm::vec3(cylinderRed, cylinderGreen, cylinderBlue),        // color
-        cylinder);
+        cylinder, lights);
 
     Shader &sphereShader1 = Shader(
         vertexShaderPhongSource,
@@ -409,16 +443,16 @@ int main(int argc, char** argv)
         glm::vec3(sphereRotX1, sphereRotY1, sphereRotZ1),        // rotation
         glm::vec3(sphereScaleX1, sphereScaleY1, sphereScaleZ1),  // scale
         glm::vec3(sphereRed1, sphereGreen1, sphereBlue1),       // color
-        sphere1);
+        sphere1, lights);
 
     Shader &sphereShader2 = Shader(
-        vertexShaderSource,
-        fragmentShaderSource,
+        vertexShaderGouraudSource,
+        fragmentShaderGouraudSource,
         glm::vec3(sphereTransX2, sphereTransY2, sphereTransZ2),  // translation
         glm::vec3(sphereRotX2, sphereRotY2, sphereRotZ2),        // rotation
         glm::vec3(sphereScaleX2, sphereScaleY2, sphereScaleZ2),  // scale
         glm::vec3(sphereRed2, sphereGreen2, sphereBlue2),        // color
-        sphere2);
+        sphere2, lights);
 
 
     // Create Camera and cursor
