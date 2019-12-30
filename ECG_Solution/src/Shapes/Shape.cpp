@@ -29,7 +29,6 @@ void Shape::initVAO() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);  
 
-    unsigned int texture;
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     if (image.data) {
@@ -41,6 +40,7 @@ void Shape::initVAO() {
 
 void Shape::Draw() {
     glPointSize(5.0f); // tmp line, remove
+    glBindTexture(GL_TEXTURE_2D, texture);
     glBindVertexArray(VAO);
     //glDrawArrays(GL_POINTS, 0, vertices.size());
     glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);

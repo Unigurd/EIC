@@ -27,7 +27,7 @@ class Shape
 protected:
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
-    unsigned int VAO;
+    unsigned int VAO, texture;
     void initVAO();
     Surface surface;
     glm::vec3 color;
@@ -36,8 +36,6 @@ protected:
 
 public:
     Shape(fs::path texturePath);
-    //Shape(Shape &&shape);
-    //Shape(DDSImage &&img);
     void Draw();
     Surface &GetSurface();
     glm::vec3 Color();

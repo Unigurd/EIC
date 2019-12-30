@@ -2,6 +2,7 @@
 
 in vec3 norm;
 in vec3 fragPos;
+in vec2 TexCoord;
 
 // Properties of the object
 uniform vec3 color;
@@ -9,6 +10,7 @@ uniform float ka;
 uniform float kd;
 uniform float ks;
 uniform int alpha;
+uniform sampler2D ourTexture;
 
 // Properties of the directional light
 uniform vec3 dirLightColor;   
@@ -26,6 +28,7 @@ void main()
 {
     vec3 nNorm = normalize(norm);
 
+    vec3 textureColor = texture(ourTexture, TexCoord).xyz;
     // Vector from the camera to the fragment
     vec3 viewDir = normalize(cameraPos.xyz - fragPos);
 
@@ -45,9 +48,9 @@ void main()
 
     // The total directional lighting.
     // Note that ka, the ambient component, is present.
-    // The specular component is not multiplied by the object color to gain
+    // The specular component is not multiplied by the object textureColor to gain
     // the white sheen present in the reference solution
-    vec3 dirResult =  (dirSpecular + ((ka + dirDiffuse) * color))  * dirLightColor;
+    vec3 dirResult =  (dirSpecular + ((ka + dirDiffuse) * textureColor))  * dirLightColor;
 
     //
     // Phong shading for the point light
@@ -73,11 +76,11 @@ void main()
     // Note that ka, the ambient component, is not present.
     // If both lights had ambient components the objects appeared too light,
     // even if both used ka/2 instead. (Since the point light is brighter).
-    // The specular component is not multiplied by the object color to gain 
+    // The specular component is not multiplied by the object textureColor to gain 
     // the white sheen present in the reference solution
-    vec3 pointResult = (pointSpecular + (pointDiffuse * color)) * pointLightColor;
+    vec3 pointResult = (pointSpecular + (pointDiffuse * textureColor)) * pointLightColor;
 
-    // Final color of the fragment.
+    // Final textureColor of the fragment.
     vec3 result = (dirResult + pointResult);
     FragColor = vec4(result, 1.0);
 }
