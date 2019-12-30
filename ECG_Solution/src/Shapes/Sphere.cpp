@@ -45,8 +45,9 @@ Sphere::Sphere(unsigned int longSegments, unsigned int latSegments, float radius
             vertices.push_back(y);
             vertices.push_back(z);
 
+            vertices.push_back((float)i / (float)longSegments);
+            //vertices.push_back((float)j / (float)latSegments);
             vertices.push_back(std::fmodf((((float)j / (float)latSegments)  + 0.25f), 1.0f));
-            vertices.push_back(std::fmodf((((float)i / (float)longSegments) + 0.25f), 1.0f));
         }
     }
     
