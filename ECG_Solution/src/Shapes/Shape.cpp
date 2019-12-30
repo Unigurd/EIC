@@ -1,6 +1,10 @@
 #include "Shape.hpp"
 #include <GL\glew.h>
 #include <GLFW/glfw3.h>
+//#include "../Utils.h"
+namespace fs = std::filesystem;
+
+Shape::Shape(fs::path texturePath) : image(loadDDS(texturePath.string().c_str())) { }
 
 void Shape::initVAO() {
     unsigned int VBO, EBO;
@@ -18,11 +22,23 @@ void Shape::initVAO() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
     // 4. then set the vertex attributes pointers
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(0 * sizeof(float)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(0 * sizeof(float)));
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);  
+
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    if (image.data) {
+        glCompressedTexImage2D(GL_TEXTURE_2D, 0, image.format, image.width, image.height, 0, image.size, image.data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+
 }
+
 void Shape::Draw() {
     glPointSize(5.0f); // tmp line, remove
     glBindVertexArray(VAO);

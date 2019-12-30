@@ -5,12 +5,13 @@
 #include <iostream>
 
 
-Cylinder::Cylinder(float height, float radius, unsigned int sides, Surface srfc, Transformation trans, glm::vec3 col) {
+Cylinder::Cylinder(float height, float radius, unsigned int sides, Surface srfc, Transformation trans, glm::vec3 col, fs::path texturePath) : Shape::Shape(texturePath) {
     surface = srfc;
     color = col;
     transformation = trans;
     // top and bottom middle vertices + normals
-    float vs[] = {
+    float vs[] = 
+    {
         0.0f, height/2.0f, 0.0f,
         0.0f, 1.0f, 0.0f,
         0.0f, -height/2.0f, 0.0f,

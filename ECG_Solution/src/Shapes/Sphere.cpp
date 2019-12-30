@@ -7,7 +7,7 @@
 
 
 
-Sphere::Sphere(unsigned int longSegments, unsigned int latSegments, float radius, Surface srfc, Transformation trans, glm::vec3 col) {
+Sphere::Sphere(unsigned int longSegments, unsigned int latSegments, float radius, Surface srfc, Transformation trans, glm::vec3 col, fs::path texturePath) : Shape::Shape(texturePath) {
     surface = srfc;
     color = col;
     transformation = trans;

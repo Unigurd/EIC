@@ -5,7 +5,7 @@
 #include "glm/ext.hpp"
 #include <string>
 
-Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString, Shape shape, Lights lights) {
+Shader::Shader(std::string vertexShaderString, std::string fragmentShaderString, Shape &shape, Lights lights) {
     const char *vertexShaderSource   = (const GLchar *)vertexShaderString.c_str();
     const char *fragmentShaderSource = (const GLchar *)fragmentShaderString.c_str();
 

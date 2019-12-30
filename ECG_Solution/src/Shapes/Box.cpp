@@ -3,66 +3,93 @@
 #include <GL\glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include "../Utils.h"
 
-Box::Box(float width, float height, float depth, Surface srfc, Transformation trans, glm::vec3 col) {
+//Box::Box(float width, float height, float depth, Surface srfc, Transformation trans, glm::vec3 col, DDSImage &&img) : Shape::Shape(img) {
+Box::Box(float width, float height, float depth, Surface srfc, Transformation trans, glm::vec3 col, fs::path texturePath) : Shape::Shape(texturePath) {
     surface = srfc;
     color = col;
     transformation = trans;
+
     // The corners of the box
     float vs[] = {
          // x-axis normals
          -width / 2,  height / 2, depth / 2,    // top left front
          -1.0, 0.0, 0.0,
+         1.0, 1.0,
          -width / 2,  -height / 2, depth / 2,   // bottom left front
          -1.0, 0.0, 0.0,
+         1.0, 0.0,
          width / 2,  height / 2, depth / 2,     // top right front
          1.0, 0.0, 0.0,
+         0.0, 1.0,
          width / 2,  -height / 2, depth / 2,    // bottom right front
          1.0, 0.0, 0.0,
+         0.0, 0.0,
          width / 2,  height / 2, -depth / 2,    // top right back
          1.0, 0.0, 0.0,
+         1.0, 1.0,
          width / 2,  -height / 2, -depth / 2,   // bottom right back
          1.0, 0.0, 0.0,
+         1.0, 0.0,
          -width / 2,  height / 2, -depth / 2,   // top left back
          -1.0, 0.0, 0.0,
+         0.0, 1.0,
          -width / 2,  -height / 2, -depth / 2,  // bottom left back
          -1.0, 0.0, 0.0,
+         0.0, 0.0,
 
         // y-axis normals
          -width / 2,  height / 2, depth / 2,    // top left front
          0.0, 1.0, 0.0,
+         0.0, 0.0,
          -width / 2,  -height / 2, depth / 2,   // bottom left front
          0.0, -1.0, 0.0,
+         0.0, 1.0,
          width / 2,  height / 2, depth / 2,     // top right front
          0.0, 1.0, 0.0,
+         1.0, 0.0,
          width / 2,  -height / 2, depth / 2,    // bottom right front
          0.0, -1.0, 0.0,
+         1.0, 1.0,
          width / 2,  height / 2, -depth / 2,    // top right back
          0.0, 1.0, 0.0,
+         1.0, 1.0,
          width / 2,  -height / 2, -depth / 2,   // bottom right back
          0.0, -1.0, 0.0,
+         1.0, 0.0,
          -width / 2,  height / 2, -depth / 2,   // top left back
          0.0, 1.0, 0.0,
+         0.0, 1.0,
          -width / 2,  -height / 2, -depth / 2,  // bottom left back
          0.0, -1.0, 0.0,
+         0.0, 0.0,
 
          // z-axis normals
          -width / 2,  height / 2, depth / 2,    // top left front
          0.0, 0.0, 1.0,
+         0.0, 1.0,
          -width / 2,  -height / 2, depth / 2,   // bottom left front
          0.0, 0.0, 1.0,
+         0.0, 0.0,
          width / 2,  height / 2, depth / 2,     // top right front
          0.0, 0.0, 1.0,
+         1.0, 1.0,
          width / 2,  -height / 2, depth / 2,    // bottom right front
          0.0, 0.0, 1.0,
+         1.0, 0.0,
          width / 2,  height / 2, -depth / 2,    // top right back
          0.0, 0.0, -1.0,
+         1.0, 0.0,
          width / 2,  -height / 2, -depth / 2,   // bottom right back
          0.0, 0.0, -1.0,
+         1.0, 1.0,
          -width / 2,  height / 2, -depth / 2,   // top left back
          0.0, 0.0, -1.0,
+         0.0, 0.0,
          -width / 2,  -height / 2, -depth / 2,  // bottom left back
          0.0, 0.0, -1.0,
+         0.0, 1.0,
 
     };
 

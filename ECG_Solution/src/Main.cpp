@@ -22,6 +22,9 @@
 #include "Shapes/Cylinder.hpp"
 #include "Shapes/Sphere.hpp"
 #include "Lights.hpp"
+#include "readFile.hpp"
+namespace fs = std::filesystem;
+
 
 /* --------------------------------------------- */
 // Callbacks
@@ -122,6 +125,7 @@ static std::string FormatDebugOutput(GLenum source, GLenum type, GLuint id, GLen
  
     return stringStream.str();
 }
+
 
 void error_callback(int error, const char* description)
 {
@@ -232,46 +236,48 @@ int main(int argc, char** argv)
     float pointLightAttQuad  = (float)reader.GetReal("pointLight", "attenuationQuad", 50.0);
 
     // box
-    float boxWidth  = (float)reader.GetReal("box", "width", 50.0);
-    float boxHeight = (float)reader.GetReal("box", "height", 50.0);
-    float boxDepth  = (float)reader.GetReal("box", "depth", 50.0);
-    float boxTransX = (float)reader.GetReal("box", "transX", 50.0);
-    float boxTransY = (float)reader.GetReal("box", "transY", 50.0);
-    float boxTransZ = (float)reader.GetReal("box", "transZ", 50.0);
-    float boxRotX   = (float)reader.GetReal("box", "rotX", 50.0);
-    float boxRotY   = (float)reader.GetReal("box", "rotY", 50.0);
-    float boxRotZ   = (float)reader.GetReal("box", "rotZ", 50.0);
-    float boxScaleX = (float)reader.GetReal("box", "scaleX", 50.0);
-    float boxScaleY = (float)reader.GetReal("box", "scaleY", 50.0);
-    float boxScaleZ = (float)reader.GetReal("box", "scaleZ", 50.0);
-    float boxRed    = (float)reader.GetReal("box", "red", 1.0);
-    float boxGreen  = (float)reader.GetReal("box", "green", 1.0);
-    float boxBlue   = (float)reader.GetReal("box", "blue", 1.0);
-    float boxKA     = (float)reader.GetReal("box", "ka", 10);
-    float boxKD     = (float)reader.GetReal("box", "kd", 10);
-    float boxKS     = (float)reader.GetReal("box", "ks", 10);
-    int boxAlpha    =     reader.GetInteger("box", "alpha", 2);
+    float boxWidth         = (float)reader.GetReal("box", "width", 50.0);
+    float boxHeight        = (float)reader.GetReal("box", "height", 50.0);
+    float boxDepth         = (float)reader.GetReal("box", "depth", 50.0);
+    float boxTransX        = (float)reader.GetReal("box", "transX", 50.0);
+    float boxTransY        = (float)reader.GetReal("box", "transY", 50.0);
+    float boxTransZ        = (float)reader.GetReal("box", "transZ", 50.0);
+    float boxRotX          = (float)reader.GetReal("box", "rotX", 50.0);
+    float boxRotY          = (float)reader.GetReal("box", "rotY", 50.0);
+    float boxRotZ          = (float)reader.GetReal("box", "rotZ", 50.0);
+    float boxScaleX        = (float)reader.GetReal("box", "scaleX", 50.0);
+    float boxScaleY        = (float)reader.GetReal("box", "scaleY", 50.0);
+    float boxScaleZ        = (float)reader.GetReal("box", "scaleZ", 50.0);
+    float boxRed           = (float)reader.GetReal("box", "red", 1.0);
+    float boxGreen         = (float)reader.GetReal("box", "green", 1.0);
+    float boxBlue          = (float)reader.GetReal("box", "blue", 1.0);
+    float boxKA            = (float)reader.GetReal("box", "ka", 10);
+    float boxKD            = (float)reader.GetReal("box", "kd", 10);
+    float boxKS            = (float)reader.GetReal("box", "ks", 10);
+    int boxAlpha           = reader.GetInteger("box", "alpha", 2);
+    std::string boxTexture = reader.Get("box", "texture", "");
 
     // cylinder
-    float cylinderHeight       = (float)reader.GetReal("cylinder", "height", 50.0);
-    float cylinderRadius       = (float)reader.GetReal("cylinder", "radius", 50.0);
-    unsigned int cylinderSides =     reader.GetInteger("cylinder", "sides", 50);
-    float cylinderTransX       = (float)reader.GetReal("cylinder", "transX", 50.0);
-    float cylinderTransY       = (float)reader.GetReal("cylinder", "transY", 50.0);
-    float cylinderTransZ       = (float)reader.GetReal("cylinder", "transZ", 50.0);
-    float cylinderRotX         = (float)reader.GetReal("cylinder", "rotX", 50.0);
-    float cylinderRotY         = (float)reader.GetReal("cylinder", "rotY", 50.0);
-    float cylinderRotZ         = (float)reader.GetReal("cylinder", "rotZ", 50.0);
-    float cylinderScaleX       = (float)reader.GetReal("cylinder", "scaleX", 50.0);
-    float cylinderScaleY       = (float)reader.GetReal("cylinder", "scaleY", 50.0);
-    float cylinderScaleZ       = (float)reader.GetReal("cylinder", "scaleZ", 50.0);
-    float cylinderRed          = (float)reader.GetReal("cylinder", "red", 1.0);
-    float cylinderGreen        = (float)reader.GetReal("cylinder", "green", 1.0);
-    float cylinderBlue         = (float)reader.GetReal("cylinder", "blue", 1.0);
-    float cylinderKA           = (float)reader.GetReal("cylinder", "ka", 10);
-    float cylinderKD           = (float)reader.GetReal("cylinder", "kd", 10);
-    float cylinderKS           = (float)reader.GetReal("cylinder", "ks", 10);
-    int cylinderAlpha          =     reader.GetInteger("cylinder", "alpha", 2);
+    float cylinderHeight        = (float)reader.GetReal("cylinder", "height", 50.0);
+    float cylinderRadius        = (float)reader.GetReal("cylinder", "radius", 50.0);
+    unsigned int cylinderSides  =     reader.GetInteger("cylinder", "sides", 50);
+    float cylinderTransX        = (float)reader.GetReal("cylinder", "transX", 50.0);
+    float cylinderTransY        = (float)reader.GetReal("cylinder", "transY", 50.0);
+    float cylinderTransZ        = (float)reader.GetReal("cylinder", "transZ", 50.0);
+    float cylinderRotX          = (float)reader.GetReal("cylinder", "rotX", 50.0);
+    float cylinderRotY          = (float)reader.GetReal("cylinder", "rotY", 50.0);
+    float cylinderRotZ          = (float)reader.GetReal("cylinder", "rotZ", 50.0);
+    float cylinderScaleX        = (float)reader.GetReal("cylinder", "scaleX", 50.0);
+    float cylinderScaleY        = (float)reader.GetReal("cylinder", "scaleY", 50.0);
+    float cylinderScaleZ        = (float)reader.GetReal("cylinder", "scaleZ", 50.0);
+    float cylinderRed           = (float)reader.GetReal("cylinder", "red", 1.0);
+    float cylinderGreen         = (float)reader.GetReal("cylinder", "green", 1.0);
+    float cylinderBlue          = (float)reader.GetReal("cylinder", "blue", 1.0);
+    float cylinderKA            = (float)reader.GetReal("cylinder", "ka", 10);
+    float cylinderKD            = (float)reader.GetReal("cylinder", "kd", 10);
+    float cylinderKS            = (float)reader.GetReal("cylinder", "ks", 10);
+    int cylinderAlpha           =     reader.GetInteger("cylinder", "alpha", 2);
+    std::string cylinderTexture = reader.Get("cylinder", "texture", "");
 
     // sphere
     unsigned int sphereLongSegments = reader.GetInteger("sphere", "longSegments", 50);
@@ -293,6 +299,8 @@ int main(int argc, char** argv)
     float sphereKD                  = (float)reader.GetReal("sphere", "kd", 10);
     float sphereKS                  = (float)reader.GetReal("sphere", "ks", 10);
     int sphereAlpha                 = reader.GetInteger("sphere", "alpha", 2);
+    std::string sphereTexture       = reader.Get("sphere", "texture", "");
+
 
     /* --------------------------------------------- */
     // Init framework
@@ -359,31 +367,55 @@ int main(int argc, char** argv)
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
+    // For reading files
+    std::filesystem::path p = "";
+
+    // Read Textures
+    std::filesystem::path wood_texture_path  = p / "assets" / "textures" / "wood_texture.dds";
+    std::filesystem::path tiles_diffuse_path = p / "assets" / "textures" / "tiles_diffuse.dds";
+
+    // Read shaders
+    string vertexShaderGouraudSource   = readFile(p / "assets" / "shaders" / "vertexShaderGouraud.vs");
+    string fragmentShaderGouraudSource = readFile(p / "assets" / "shaders" / "fragmentShaderGouraud.fs");
+    string vertexShaderPhongSource     = readFile(p / "assets" / "shaders" / "vertexShaderPhong.vs");
+    string fragmentShaderPhongSource   = readFile(p / "assets" / "shaders" / "fragmentShaderPhong.fs");
+
     // Create the point light
     PointLight pointLight;
-    pointLight.color = glm::vec3(pointLightRed, pointLightGreen, pointLightBlue);
-    pointLight.position = glm::vec3(pointLightTransX, pointLightTransY, pointLightTransZ);
+    pointLight.color       = glm::vec3(pointLightRed, pointLightGreen, pointLightBlue);
+    pointLight.position    = glm::vec3(pointLightTransX, pointLightTransY, pointLightTransZ);
     pointLight.attenuation = glm::vec3(pointLightAttQuad, pointLightAttLin, pointLightAttConst);
 
     // Create the directional light
     DirectionLight dirLight;
-    dirLight.color = glm::vec3(dirLightRed, dirLightGreen, dirLightBlue);
+    dirLight.color     = glm::vec3(dirLightRed, dirLightGreen, dirLightBlue);
     dirLight.direction = glm::vec3(dirLightDirX, dirLightDirY, dirLightDirZ);
 
     // Bundle the two lights together to be used as argument to the shaders
     Lights lights;
-    lights.dirLight  = dirLight;
+    lights.dirLight   = dirLight;
     lights.pointLight = pointLight;
 
     // Specify the properties of the surfaces of the four objects
-    Surface boxSurface; boxSurface.alpha = boxAlpha;
-    boxSurface.ka = boxKA; boxSurface.kd = boxKD; boxSurface.ks = boxKS;
-    Surface cylinderSurface; cylinderSurface.alpha = cylinderAlpha;
-    cylinderSurface.ka = cylinderKA; cylinderSurface.kd = cylinderKD; cylinderSurface.ks = cylinderKS;
-    Surface sphereSurface; sphereSurface.alpha = sphereAlpha;
-    sphereSurface.ka = sphereKA; sphereSurface.kd = sphereKD; sphereSurface.ks = sphereKS;
+    Surface boxSurface;
+    boxSurface.ka = boxKA;
+    boxSurface.kd = boxKD;
+    boxSurface.ks = boxKS;
+    boxSurface.alpha = boxAlpha;
 
-    // Transforations of each object
+    Surface cylinderSurface;
+    cylinderSurface.ka = cylinderKA;
+    cylinderSurface.kd = cylinderKD;
+    cylinderSurface.ks = cylinderKS;
+    cylinderSurface.alpha = cylinderAlpha;
+    
+    Surface sphereSurface;
+    sphereSurface.ka = sphereKA;
+    sphereSurface.kd = sphereKD;
+    sphereSurface.ks = sphereKS;
+    sphereSurface.alpha = sphereAlpha;
+
+    // Transformations of each object
     Transformation boxTransformation;
     boxTransformation.translation = glm::vec3(boxTransX, boxTransY, boxTransZ);
     boxTransformation.rotation    = glm::vec3(boxRotX, boxRotY, boxRotZ);
@@ -403,18 +435,16 @@ int main(int argc, char** argv)
     glm::vec3 cylinderColor = glm::vec3(cylinderRed, cylinderGreen, cylinderBlue);
     glm::vec3 sphereColor   = glm::vec3(sphereRed, sphereGreen, sphereBlue);
 
+
+    
     // Generate Shapes
-    Box box           = Box(boxWidth, boxHeight, boxDepth, boxSurface, boxTransformation, boxColor);
-    Cylinder cylinder = Cylinder(cylinderHeight, cylinderRadius, cylinderSides, cylinderSurface, cylinderTransformation, cylinderColor);
-    Sphere sphere     = Sphere(sphereLongSegments, sphereLatSegments, sphereRadius, sphereSurface, sphereTransformation, sphereColor);
+    Box box           = Box(boxWidth, boxHeight, boxDepth, boxSurface, boxTransformation, boxColor, wood_texture_path);
+    Cylinder cylinder = Cylinder(cylinderHeight, cylinderRadius, cylinderSides, cylinderSurface, cylinderTransformation, cylinderColor, tiles_diffuse_path);
+    Sphere sphere     = Sphere(sphereLongSegments, sphereLatSegments, sphereRadius, sphereSurface, sphereTransformation, sphereColor, tiles_diffuse_path);
 
-
-    // Read shaders
-    std::filesystem::path p = "";
-    string vertexShaderGouraudSource   = readFile(p / "assets" / "shaders" / "vertexShaderGouraud.vs");
-    string fragmentShaderGouraudSource = readFile(p / "assets" / "shaders" / "fragmentShaderGouraud.fs");
-    string vertexShaderPhongSource     = readFile(p / "assets" / "shaders" / "vertexShaderPhong.vs");
-    string fragmentShaderPhongSource   = readFile(p / "assets" / "shaders" / "fragmentShaderPhong.fs");
+    //Box box           = Box(boxWidth, boxHeight, boxDepth, boxSurface, boxTransformation, boxColor, loadDDS(wood_texture_path.string().c_str()));
+    //Cylinder cylinder = Cylinder(cylinderHeight, cylinderRadius, cylinderSides, cylinderSurface, cylinderTransformation, cylinderColor, loadDDS(tiles_diffuse_path.string().c_str()));
+    //Sphere sphere     = Sphere(sphereLongSegments, sphereLatSegments, sphereRadius, sphereSurface, sphereTransformation, sphereColor, loadDDS(tiles_diffuse_path.string().c_str()));
     
     // Generate shaders
     Shader &boxShader = Shader(
