@@ -43,8 +43,8 @@ Cylinder::Cylinder(float height, float radius, unsigned int sides, Surface srfc,
         vertices.push_back(1.0f);
         vertices.push_back(0.0f);
 
-        vertices.push_back(xUnit);
-        vertices.push_back(zUnit);
+        vertices.push_back((xUnit + 1.0f) / 2.0f);
+        vertices.push_back((zUnit + 1.0f) / 2.0f);
 
         // bottom vertex, bottom normal
         vertices.push_back(x); 
@@ -55,8 +55,8 @@ Cylinder::Cylinder(float height, float radius, unsigned int sides, Surface srfc,
         vertices.push_back(-1.0f);
         vertices.push_back(0.0f);
 
-        vertices.push_back(xUnit);
-        vertices.push_back(zUnit);
+        vertices.push_back((xUnit + 1.0f) / 2.0f);
+        vertices.push_back((zUnit + 1.0f) / 2.0f);
 
         // top vertex, side normal
         vertices.push_back(x); 
