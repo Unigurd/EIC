@@ -3,7 +3,9 @@
 #include "glm\matrix.hpp"
 #include "glm/ext.hpp"
 #include <vector>
-
+#include "../Utils.h"
+#include <filesystem>
+namespace fs = std::filesystem;
 
 // Describes the lighting properties of a surface
 struct Surface {
@@ -25,13 +27,15 @@ class Shape
 protected:
     std::vector<float> vertices;
     std::vector<unsigned int> indices;
-    unsigned int VAO;
+    unsigned int VAO, texture;
     void initVAO();
     Surface surface;
     glm::vec3 color;
     Transformation transformation;
+    DDSImage image;
 
 public:
+    Shape(fs::path texturePath);
     void Draw();
     Surface &GetSurface();
     glm::vec3 Color();

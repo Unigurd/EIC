@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="src\readFile.cpp" />
+    <ClInclude Include="src\readFile.hpp" />
     <ClInclude Include="src\Lights.hpp" />
     <ClInclude Include="src\Shapes\Sphere.hpp" />
     <ClInclude Include="src\Shapes\Cylinder.hpp" />
