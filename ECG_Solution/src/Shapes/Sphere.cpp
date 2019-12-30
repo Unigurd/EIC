@@ -15,8 +15,10 @@ Sphere::Sphere(unsigned int longSegments, unsigned int latSegments, float radius
     float vs[] = {
         0.0, radius, 0.0, 
         0.0, radius, 0.0, 
+        0.5, 1.0,
         0.0, -radius, 0.0,
-        0.0, -radius, 0.0
+        0.0, -radius, 0.0,
+        0.5, 0.0
     };
 
     // initialize vectors. Might be changed to arrays at some point.
@@ -42,6 +44,9 @@ Sphere::Sphere(unsigned int longSegments, unsigned int latSegments, float radius
             vertices.push_back(x);
             vertices.push_back(y);
             vertices.push_back(z);
+
+            vertices.push_back(std::fmodf((((float)j / (float)latSegments)  + 0.25f), 1.0f));
+            vertices.push_back(std::fmodf((((float)i / (float)longSegments) + 0.25f), 1.0f));
         }
     }
     
